@@ -1,0 +1,1109 @@
+{
+  "generated": "2026-07-04",
+  "trained_through": "2026-07-03",
+  "n_sims": 20000,
+  "state": {
+    "alive": [
+      "Argentina",
+      "Belgium",
+      "Brazil",
+      "Canada",
+      "Colombia",
+      "Egypt",
+      "England",
+      "France",
+      "Mexico",
+      "Morocco",
+      "Norway",
+      "Paraguay",
+      "Portugal",
+      "Spain",
+      "Switzerland",
+      "United States"
+    ],
+    "eliminated": [
+      "Algeria",
+      "Australia",
+      "Austria",
+      "Bosnia and Herzegovina",
+      "Cape Verde",
+      "Croatia",
+      "Cura\u00e7ao",
+      "Czechia",
+      "DR Congo",
+      "Ecuador",
+      "Germany",
+      "Ghana",
+      "Haiti",
+      "Iran",
+      "Iraq",
+      "Ivory Coast",
+      "Japan",
+      "Jordan",
+      "Netherlands",
+      "New Zealand",
+      "Panama",
+      "Qatar",
+      "Saudi Arabia",
+      "Scotland",
+      "Senegal",
+      "South Africa",
+      "South Korea",
+      "Sweden",
+      "Tunisia",
+      "Turkey",
+      "Uruguay",
+      "Uzbekistan"
+    ],
+    "completed_knockout": [
+      {
+        "home": "South Africa",
+        "away": "Canada",
+        "home_score": 0,
+        "away_score": 1,
+        "winner": "Canada"
+      },
+      {
+        "home": "Germany",
+        "away": "Paraguay",
+        "home_score": 1,
+        "away_score": 1,
+        "winner": "Paraguay"
+      },
+      {
+        "home": "Netherlands",
+        "away": "Morocco",
+        "home_score": 1,
+        "away_score": 1,
+        "winner": "Morocco"
+      },
+      {
+        "home": "Brazil",
+        "away": "Japan",
+        "home_score": 2,
+        "away_score": 1,
+        "winner": "Brazil"
+      },
+      {
+        "home": "Ivory Coast",
+        "away": "Norway",
+        "home_score": 1,
+        "away_score": 2,
+        "winner": "Norway"
+      },
+      {
+        "home": "France",
+        "away": "Sweden",
+        "home_score": 3,
+        "away_score": 0,
+        "winner": "France"
+      },
+      {
+        "home": "Mexico",
+        "away": "Ecuador",
+        "home_score": 2,
+        "away_score": 0,
+        "winner": "Mexico"
+      },
+      {
+        "home": "England",
+        "away": "DR Congo",
+        "home_score": 2,
+        "away_score": 1,
+        "winner": "England"
+      },
+      {
+        "home": "Belgium",
+        "away": "Senegal",
+        "home_score": 3,
+        "away_score": 2,
+        "winner": "Belgium"
+      },
+      {
+        "home": "United States",
+        "away": "Bosnia and Herzegovina",
+        "home_score": 2,
+        "away_score": 0,
+        "winner": "United States"
+      },
+      {
+        "home": "Spain",
+        "away": "Austria",
+        "home_score": 3,
+        "away_score": 0,
+        "winner": "Spain"
+      },
+      {
+        "home": "Portugal",
+        "away": "Croatia",
+        "home_score": 2,
+        "away_score": 1,
+        "winner": "Portugal"
+      },
+      {
+        "home": "Switzerland",
+        "away": "Algeria",
+        "home_score": 2,
+        "away_score": 0,
+        "winner": "Switzerland"
+      },
+      {
+        "home": "Argentina",
+        "away": "Cape Verde",
+        "home_score": 3,
+        "away_score": 2,
+        "winner": "Argentina"
+      },
+      {
+        "home": "Australia",
+        "away": "Egypt",
+        "home_score": 1,
+        "away_score": 1,
+        "winner": "Egypt"
+      },
+      {
+        "home": "Colombia",
+        "away": "Ghana",
+        "home_score": 1,
+        "away_score": 0,
+        "winner": "Colombia"
+      }
+    ],
+    "n_group_matches": 72,
+    "n_knockout_matches": 16,
+    "next_round": "Round of 16",
+    "groups": {
+      "A": [
+        {
+          "team": "Argentina",
+          "pts": 9,
+          "gf": 8,
+          "ga": 1,
+          "gd": 7
+        },
+        {
+          "team": "Austria",
+          "pts": 4,
+          "gf": 6,
+          "ga": 6,
+          "gd": 0
+        },
+        {
+          "team": "Algeria",
+          "pts": 4,
+          "gf": 5,
+          "ga": 7,
+          "gd": -2
+        },
+        {
+          "team": "Jordan",
+          "pts": 0,
+          "gf": 3,
+          "ga": 8,
+          "gd": -5
+        }
+      ],
+      "B": [
+        {
+          "team": "United States",
+          "pts": 6,
+          "gf": 8,
+          "ga": 4,
+          "gd": 4
+        },
+        {
+          "team": "Australia",
+          "pts": 4,
+          "gf": 2,
+          "ga": 2,
+          "gd": 0
+        },
+        {
+          "team": "Paraguay",
+          "pts": 4,
+          "gf": 2,
+          "ga": 4,
+          "gd": -2
+        },
+        {
+          "team": "Turkey",
+          "pts": 3,
+          "gf": 3,
+          "ga": 5,
+          "gd": -2
+        }
+      ],
+      "C": [
+        {
+          "team": "Belgium",
+          "pts": 5,
+          "gf": 6,
+          "ga": 2,
+          "gd": 4
+        },
+        {
+          "team": "Egypt",
+          "pts": 5,
+          "gf": 5,
+          "ga": 3,
+          "gd": 2
+        },
+        {
+          "team": "Iran",
+          "pts": 3,
+          "gf": 3,
+          "ga": 3,
+          "gd": 0
+        },
+        {
+          "team": "New Zealand",
+          "pts": 1,
+          "gf": 4,
+          "ga": 10,
+          "gd": -6
+        }
+      ],
+      "D": [
+        {
+          "team": "Switzerland",
+          "pts": 7,
+          "gf": 7,
+          "ga": 3,
+          "gd": 4
+        },
+        {
+          "team": "Canada",
+          "pts": 4,
+          "gf": 8,
+          "ga": 3,
+          "gd": 5
+        },
+        {
+          "team": "Bosnia and Herzegovina",
+          "pts": 4,
+          "gf": 5,
+          "ga": 6,
+          "gd": -1
+        },
+        {
+          "team": "Qatar",
+          "pts": 1,
+          "gf": 2,
+          "ga": 10,
+          "gd": -8
+        }
+      ],
+      "E": [
+        {
+          "team": "Brazil",
+          "pts": 7,
+          "gf": 7,
+          "ga": 1,
+          "gd": 6
+        },
+        {
+          "team": "Morocco",
+          "pts": 7,
+          "gf": 6,
+          "ga": 3,
+          "gd": 3
+        },
+        {
+          "team": "Scotland",
+          "pts": 3,
+          "gf": 1,
+          "ga": 4,
+          "gd": -3
+        },
+        {
+          "team": "Haiti",
+          "pts": 0,
+          "gf": 2,
+          "ga": 8,
+          "gd": -6
+        }
+      ],
+      "F": [
+        {
+          "team": "Spain",
+          "pts": 7,
+          "gf": 5,
+          "ga": 0,
+          "gd": 5
+        },
+        {
+          "team": "Cape Verde",
+          "pts": 3,
+          "gf": 2,
+          "ga": 2,
+          "gd": 0
+        },
+        {
+          "team": "Uruguay",
+          "pts": 2,
+          "gf": 3,
+          "ga": 4,
+          "gd": -1
+        },
+        {
+          "team": "Saudi Arabia",
+          "pts": 2,
+          "gf": 1,
+          "ga": 5,
+          "gd": -4
+        }
+      ],
+      "G": [
+        {
+          "team": "Colombia",
+          "pts": 7,
+          "gf": 4,
+          "ga": 1,
+          "gd": 3
+        },
+        {
+          "team": "Portugal",
+          "pts": 5,
+          "gf": 6,
+          "ga": 1,
+          "gd": 5
+        },
+        {
+          "team": "DR Congo",
+          "pts": 4,
+          "gf": 4,
+          "ga": 3,
+          "gd": 1
+        },
+        {
+          "team": "Uzbekistan",
+          "pts": 0,
+          "gf": 2,
+          "ga": 11,
+          "gd": -9
+        }
+      ],
+      "H": [
+        {
+          "team": "England",
+          "pts": 7,
+          "gf": 6,
+          "ga": 2,
+          "gd": 4
+        },
+        {
+          "team": "Croatia",
+          "pts": 6,
+          "gf": 5,
+          "ga": 5,
+          "gd": 0
+        },
+        {
+          "team": "Ghana",
+          "pts": 4,
+          "gf": 2,
+          "ga": 2,
+          "gd": 0
+        },
+        {
+          "team": "Panama",
+          "pts": 0,
+          "gf": 0,
+          "ga": 4,
+          "gd": -4
+        }
+      ],
+      "I": [
+        {
+          "team": "Germany",
+          "pts": 6,
+          "gf": 10,
+          "ga": 4,
+          "gd": 6
+        },
+        {
+          "team": "Ivory Coast",
+          "pts": 6,
+          "gf": 4,
+          "ga": 2,
+          "gd": 2
+        },
+        {
+          "team": "Ecuador",
+          "pts": 4,
+          "gf": 2,
+          "ga": 2,
+          "gd": 0
+        },
+        {
+          "team": "Cura\u00e7ao",
+          "pts": 1,
+          "gf": 1,
+          "ga": 9,
+          "gd": -8
+        }
+      ],
+      "J": [
+        {
+          "team": "Mexico",
+          "pts": 9,
+          "gf": 6,
+          "ga": 0,
+          "gd": 6
+        },
+        {
+          "team": "South Africa",
+          "pts": 4,
+          "gf": 2,
+          "ga": 3,
+          "gd": -1
+        },
+        {
+          "team": "South Korea",
+          "pts": 3,
+          "gf": 2,
+          "ga": 3,
+          "gd": -1
+        },
+        {
+          "team": "Czechia",
+          "pts": 1,
+          "gf": 2,
+          "ga": 6,
+          "gd": -4
+        }
+      ],
+      "K": [
+        {
+          "team": "France",
+          "pts": 9,
+          "gf": 10,
+          "ga": 2,
+          "gd": 8
+        },
+        {
+          "team": "Norway",
+          "pts": 6,
+          "gf": 8,
+          "ga": 7,
+          "gd": 1
+        },
+        {
+          "team": "Senegal",
+          "pts": 3,
+          "gf": 8,
+          "ga": 6,
+          "gd": 2
+        },
+        {
+          "team": "Iraq",
+          "pts": 0,
+          "gf": 1,
+          "ga": 12,
+          "gd": -11
+        }
+      ],
+      "L": [
+        {
+          "team": "Netherlands",
+          "pts": 7,
+          "gf": 10,
+          "ga": 4,
+          "gd": 6
+        },
+        {
+          "team": "Japan",
+          "pts": 5,
+          "gf": 7,
+          "ga": 3,
+          "gd": 4
+        },
+        {
+          "team": "Sweden",
+          "pts": 4,
+          "gf": 7,
+          "ga": 7,
+          "gd": 0
+        },
+        {
+          "team": "Tunisia",
+          "pts": 0,
+          "gf": 2,
+          "ga": 12,
+          "gd": -10
+        }
+      ]
+    }
+  },
+  "bracket": [
+    "Spain",
+    "Egypt",
+    "Mexico",
+    "Morocco",
+    "England",
+    "United States",
+    "Brazil",
+    "Belgium",
+    "Argentina",
+    "Canada",
+    "Portugal",
+    "Switzerland",
+    "France",
+    "Paraguay",
+    "Colombia",
+    "Norway"
+  ],
+  "round_names": {
+    "16": "Round of 16",
+    "8": "Quarter-final",
+    "4": "Semi-final",
+    "2": "Final"
+  },
+  "sizes": [
+    16,
+    8,
+    4,
+    2
+  ],
+  "title_odds": [
+    {
+      "team": "Argentina",
+      "champion": 0.27605,
+      "reach_16": 1.0,
+      "reach_8": 0.9051,
+      "reach_4": 0.67415,
+      "reach_2": 0.4281
+    },
+    {
+      "team": "Spain",
+      "champion": 0.2673,
+      "reach_16": 1.0,
+      "reach_8": 0.9209,
+      "reach_4": 0.7102,
+      "reach_2": 0.49075
+    },
+    {
+      "team": "France",
+      "champion": 0.16285,
+      "reach_16": 1.0,
+      "reach_8": 0.8848,
+      "reach_4": 0.5925,
+      "reach_2": 0.30365
+    },
+    {
+      "team": "Brazil",
+      "champion": 0.07755,
+      "reach_16": 1.0,
+      "reach_8": 0.6953,
+      "reach_4": 0.41715,
+      "reach_2": 0.17845
+    },
+    {
+      "team": "England",
+      "champion": 0.0691,
+      "reach_16": 1.0,
+      "reach_8": 0.8137,
+      "reach_4": 0.4195,
+      "reach_2": 0.17795
+    },
+    {
+      "team": "Colombia",
+      "champion": 0.0463,
+      "reach_16": 1.0,
+      "reach_8": 0.67405,
+      "reach_4": 0.2854,
+      "reach_2": 0.11395
+    },
+    {
+      "team": "Portugal",
+      "champion": 0.0394,
+      "reach_16": 1.0,
+      "reach_8": 0.6283,
+      "reach_4": 0.2199,
+      "reach_2": 0.09585
+    },
+    {
+      "team": "Morocco",
+      "champion": 0.023,
+      "reach_16": 1.0,
+      "reach_8": 0.51635,
+      "reach_4": 0.14745,
+      "reach_2": 0.0661
+    },
+    {
+      "team": "Mexico",
+      "champion": 0.0146,
+      "reach_16": 1.0,
+      "reach_8": 0.48365,
+      "reach_4": 0.1231,
+      "reach_2": 0.04635
+    },
+    {
+      "team": "Belgium",
+      "champion": 0.0087,
+      "reach_16": 1.0,
+      "reach_8": 0.3047,
+      "reach_4": 0.11985,
+      "reach_2": 0.02925
+    },
+    {
+      "team": "Switzerland",
+      "champion": 0.00675,
+      "reach_16": 1.0,
+      "reach_8": 0.3717,
+      "reach_4": 0.0804,
+      "reach_2": 0.02485
+    },
+    {
+      "team": "Norway",
+      "champion": 0.0056,
+      "reach_16": 1.0,
+      "reach_8": 0.32595,
+      "reach_4": 0.0942,
+      "reach_2": 0.02475
+    },
+    {
+      "team": "United States",
+      "champion": 0.00105,
+      "reach_16": 1.0,
+      "reach_8": 0.1863,
+      "reach_4": 0.0435,
+      "reach_2": 0.00725
+    },
+    {
+      "team": "Canada",
+      "champion": 0.00085,
+      "reach_16": 1.0,
+      "reach_8": 0.0949,
+      "reach_4": 0.02555,
+      "reach_2": 0.0051
+    },
+    {
+      "team": "Egypt",
+      "champion": 0.0005,
+      "reach_16": 1.0,
+      "reach_8": 0.0791,
+      "reach_4": 0.01925,
+      "reach_2": 0.0039
+    },
+    {
+      "team": "Paraguay",
+      "champion": 0.0004,
+      "reach_16": 1.0,
+      "reach_8": 0.1152,
+      "reach_4": 0.0279,
+      "reach_2": 0.00375
+    }
+  ],
+  "current_round": "Round of 16",
+  "current_round_fixtures": [
+    {
+      "home": "Spain",
+      "away": "Egypt",
+      "prediction": {
+        "home_team": "Spain",
+        "away_team": "Egypt",
+        "p_home": 0.7682,
+        "p_draw": 0.1669,
+        "p_away": 0.0649,
+        "exp_home_goals": 1.864,
+        "exp_away_goals": 0.501,
+        "projected_score": [
+          1,
+          0
+        ],
+        "projected_score_prob": 0.2151,
+        "confidence": 0.7682,
+        "confidence_label": "High",
+        "favorite": "Spain",
+        "top_scorelines": [
+          {
+            "score": [
+              1,
+              0
+            ],
+            "prob": 0.2151
+          },
+          {
+            "score": [
+              2,
+              0
+            ],
+            "prob": 0.1744
+          },
+          {
+            "score": [
+              2,
+              1
+            ],
+            "prob": 0.1129
+          }
+        ]
+      }
+    },
+    {
+      "home": "Mexico",
+      "away": "Morocco",
+      "prediction": {
+        "home_team": "Mexico",
+        "away_team": "Morocco",
+        "p_home": 0.3584,
+        "p_draw": 0.2718,
+        "p_away": 0.3698,
+        "exp_home_goals": 0.861,
+        "exp_away_goals": 0.933,
+        "projected_score": [
+          1,
+          0
+        ],
+        "projected_score_prob": 0.1735,
+        "confidence": 0.3698,
+        "confidence_label": "Low",
+        "favorite": "Morocco",
+        "top_scorelines": [
+          {
+            "score": [
+              1,
+              0
+            ],
+            "prob": 0.1735
+          },
+          {
+            "score": [
+              0,
+              1
+            ],
+            "prob": 0.1572
+          },
+          {
+            "score": [
+              0,
+              0
+            ],
+            "prob": 0.1444
+          }
+        ]
+      }
+    },
+    {
+      "home": "England",
+      "away": "United States",
+      "prediction": {
+        "home_team": "England",
+        "away_team": "United States",
+        "p_home": 0.6669,
+        "p_draw": 0.1803,
+        "p_away": 0.1529,
+        "exp_home_goals": 1.791,
+        "exp_away_goals": 0.747,
+        "projected_score": [
+          1,
+          0
+        ],
+        "projected_score_prob": 0.1625,
+        "confidence": 0.6669,
+        "confidence_label": "High",
+        "favorite": "England",
+        "top_scorelines": [
+          {
+            "score": [
+              1,
+              0
+            ],
+            "prob": 0.1625
+          },
+          {
+            "score": [
+              2,
+              0
+            ],
+            "prob": 0.1365
+          },
+          {
+            "score": [
+              2,
+              1
+            ],
+            "prob": 0.1131
+          }
+        ]
+      }
+    },
+    {
+      "home": "Brazil",
+      "away": "Belgium",
+      "prediction": {
+        "home_team": "Brazil",
+        "away_team": "Belgium",
+        "p_home": 0.5553,
+        "p_draw": 0.2017,
+        "p_away": 0.243,
+        "exp_home_goals": 1.725,
+        "exp_away_goals": 1.084,
+        "projected_score": [
+          1,
+          0
+        ],
+        "projected_score_prob": 0.1136,
+        "confidence": 0.5553,
+        "confidence_label": "Medium",
+        "favorite": "Brazil",
+        "top_scorelines": [
+          {
+            "score": [
+              1,
+              0
+            ],
+            "prob": 0.1136
+          },
+          {
+            "score": [
+              2,
+              1
+            ],
+            "prob": 0.1109
+          },
+          {
+            "score": [
+              2,
+              0
+            ],
+            "prob": 0.0964
+          }
+        ]
+      }
+    },
+    {
+      "home": "Argentina",
+      "away": "Canada",
+      "prediction": {
+        "home_team": "Argentina",
+        "away_team": "Canada",
+        "p_home": 0.758,
+        "p_draw": 0.1616,
+        "p_away": 0.0804,
+        "exp_home_goals": 1.836,
+        "exp_away_goals": 0.513,
+        "projected_score": [
+          1,
+          0
+        ],
+        "projected_score_prob": 0.2145,
+        "confidence": 0.758,
+        "confidence_label": "High",
+        "favorite": "Argentina",
+        "top_scorelines": [
+          {
+            "score": [
+              1,
+              0
+            ],
+            "prob": 0.2145
+          },
+          {
+            "score": [
+              2,
+              0
+            ],
+            "prob": 0.1733
+          },
+          {
+            "score": [
+              2,
+              1
+            ],
+            "prob": 0.1102
+          }
+        ]
+      }
+    },
+    {
+      "home": "Portugal",
+      "away": "Switzerland",
+      "prediction": {
+        "home_team": "Portugal",
+        "away_team": "Switzerland",
+        "p_home": 0.494,
+        "p_draw": 0.2168,
+        "p_away": 0.2892,
+        "exp_home_goals": 1.565,
+        "exp_away_goals": 1.104,
+        "projected_score": [
+          1,
+          0
+        ],
+        "projected_score_prob": 0.1094,
+        "confidence": 0.494,
+        "confidence_label": "Medium",
+        "favorite": "Portugal",
+        "top_scorelines": [
+          {
+            "score": [
+              1,
+              0
+            ],
+            "prob": 0.1094
+          },
+          {
+            "score": [
+              1,
+              1
+            ],
+            "prob": 0.1034
+          },
+          {
+            "score": [
+              2,
+              1
+            ],
+            "prob": 0.0966
+          }
+        ]
+      }
+    },
+    {
+      "home": "France",
+      "away": "Paraguay",
+      "prediction": {
+        "home_team": "France",
+        "away_team": "Paraguay",
+        "p_home": 0.7415,
+        "p_draw": 0.163,
+        "p_away": 0.0955,
+        "exp_home_goals": 1.78,
+        "exp_away_goals": 0.55,
+        "projected_score": [
+          1,
+          0
+        ],
+        "projected_score_prob": 0.2165,
+        "confidence": 0.7415,
+        "confidence_label": "High",
+        "favorite": "France",
+        "top_scorelines": [
+          {
+            "score": [
+              1,
+              0
+            ],
+            "prob": 0.2165
+          },
+          {
+            "score": [
+              2,
+              0
+            ],
+            "prob": 0.1669
+          },
+          {
+            "score": [
+              2,
+              1
+            ],
+            "prob": 0.1146
+          }
+        ]
+      }
+    },
+    {
+      "home": "Colombia",
+      "away": "Norway",
+      "prediction": {
+        "home_team": "Colombia",
+        "away_team": "Norway",
+        "p_home": 0.5147,
+        "p_draw": 0.2427,
+        "p_away": 0.2426,
+        "exp_home_goals": 1.664,
+        "exp_away_goals": 1.076,
+        "projected_score": [
+          1,
+          1
+        ],
+        "projected_score_prob": 0.1156,
+        "confidence": 0.5147,
+        "confidence_label": "Medium",
+        "favorite": "Colombia",
+        "top_scorelines": [
+          {
+            "score": [
+              1,
+              1
+            ],
+            "prob": 0.1156
+          },
+          {
+            "score": [
+              1,
+              0
+            ],
+            "prob": 0.1055
+          },
+          {
+            "score": [
+              2,
+              1
+            ],
+            "prob": 0.0996
+          }
+        ]
+      }
+    }
+  ],
+  "weights": {
+    "dixon_coles": 0.4506804071194913,
+    "gboost": 0.5493195928805088,
+    "elo_logistic": 0.0,
+    "base_rate": 9.562663161322145e-17
+  },
+  "backtest": {
+    "dixon_coles": {
+      "rps": 0.1797,
+      "log_loss": 0.9032,
+      "brier": 0.5323,
+      "accuracy": 0.5842,
+      "exact_score": 0.1024,
+      "n": 8196
+    },
+    "gboost": {
+      "rps": 0.1706,
+      "log_loss": 0.8733,
+      "brier": 0.5132,
+      "accuracy": 0.601,
+      "exact_score": 0.1071,
+      "n": 8196
+    },
+    "elo_logistic": {
+      "rps": 0.1704,
+      "log_loss": 0.8739,
+      "brier": 0.514,
+      "accuracy": 0.6016,
+      "exact_score": 0.1009,
+      "n": 8196
+    },
+    "base_rate": {
+      "rps": 0.2281,
+      "log_loss": 1.051,
+      "brier": 0.6338,
+      "accuracy": 0.478,
+      "exact_score": 0.0732,
+      "n": 8196
+    },
+    "ensemble": {
+      "rps": 0.1694,
+      "log_loss": 0.8685,
+      "brier": 0.5102,
+      "accuracy": 0.6041,
+      "exact_score": 0.1024,
+      "n": 8196
+    }
+  },
+  "world_cup_backtest": {
+    "rps": 0.191,
+    "log_loss": 0.9534,
+    "brier": 0.5636,
+    "accuracy": 0.5833,
+    "exact_score": 0.1157,
+    "n": 216
+  }
+}

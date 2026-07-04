@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+
+# Data cache (downloaded at runtime)
+data/*.csv
+
+# Trained artifacts under outputs/ (model.joblib, metrics.json,
+# predictions_2026.json, calibration.png) are small and committed so the
+# dashboard works immediately after cloning. Regenerate with scripts/train.py.
+
+# OS / editor
+.DS_Store
+.ipynb_checkpoints/
+.pytest_cache/
+.streamlit/secrets.toml
