@@ -58,6 +58,9 @@ class GameFeatureBuilder:
         self.deploy_season = 0
         self.deploy_proj: ProjectionSystem | None = None
         self.deploy_offense: OffenseModel | None = None
+        self.default_lineups: dict[str, list] = {}    # team -> most recent 9-man order
+        self.default_starter: dict[str, str] = {}      # team -> most recent starter
+        self.default_park: dict[str, str] = {}         # team -> most recent home park
 
     # ------------------------------------------------------------------ #
     def _expected(self, row, ps: ProjectionSystem, off: OffenseModel):
@@ -123,7 +126,25 @@ class GameFeatureBuilder:
             self.deploy_proj = self.proj_by_season[max(self.proj_by_season)]
         recent_rpg = float(np.mean([lg_rpg[s] for s in seasons[-2:]]))
         self.deploy_offense = OffenseModel(self.deploy_proj.league_bat, recent_rpg, self.sp_share)
+        self._store_default_lineups(game_logs)
         return df
+
+    def _store_default_lineups(self, game_logs: pd.DataFrame) -> None:
+        """Each team's most recent starting order + starter (fallback for live slates)."""
+        rows = []
+        for lin_col, sp_col, team_col in (("home_lineup", "home_sp", "home_team"),
+                                          ("away_lineup", "away_sp", "away_team")):
+            part = game_logs[["date", team_col, lin_col, sp_col]].rename(
+                columns={team_col: "team", lin_col: "lineup", sp_col: "sp"})
+            rows.append(part)
+        allg = pd.concat(rows, ignore_index=True).sort_values("date")
+        for team, sub in allg.groupby("team"):
+            last = sub.iloc[-1]
+            self.default_lineups[team] = list(last["lineup"])
+            self.default_starter[team] = last["sp"]
+        # Most recent home park per team.
+        for team, sub in game_logs.sort_values("date").groupby("home_team"):
+            self.default_park[team] = sub.iloc[-1]["park"]
 
     # ------------------------------------------------------------------ #
     def slim(self) -> "GameFeatureBuilder":

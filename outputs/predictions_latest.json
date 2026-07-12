@@ -1,0 +1,912 @@
+{
+  "date": "2026-07-12",
+  "generated": "2026-07-12",
+  "source": "manual",
+  "trained_through": "2025-09-28",
+  "n_games": 3,
+  "games": [
+    {
+      "home_team": "LAN",
+      "away_team": "SDN",
+      "date": "2026-07-12",
+      "park": "LOS03",
+      "moneyline": {
+        "p_home": 0.592,
+        "p_away": 0.408,
+        "fair_home": -145,
+        "fair_away": 145,
+        "favorite": "LAN"
+      },
+      "score": {
+        "projected_away": 4,
+        "projected_home": 4,
+        "exp_away_runs": 3.59,
+        "exp_home_runs": 4.14
+      },
+      "total": {
+        "exp_total": 7.72,
+        "line": 7.5,
+        "p_over": 0.4674,
+        "p_under": 0.5326
+      },
+      "run_line": {
+        "home_-1.5": 0.4179,
+        "away_+1.5": 0.5821,
+        "away_-1.5": 0.2857,
+        "home_+1.5": 0.7143
+      },
+      "first_5_innings": {
+        "p_home": 0.5814,
+        "p_away": 0.4186,
+        "exp_total": 4.3,
+        "line": 4.5
+      },
+      "pitcher_props": [
+        {
+          "player": "Clayton Kershaw",
+          "id": "kersc001",
+          "proj_k": 4.88,
+          "k_line": 5.0,
+          "p_over_k": 0.357,
+          "proj_ip": 6.9,
+          "proj_hits_allowed": 6.23,
+          "proj_earned_runs": 2.58
+        },
+        {
+          "player": "Yu Darvish",
+          "id": "darvy001",
+          "proj_k": 6.19,
+          "k_line": 6.0,
+          "p_over_k": 0.425,
+          "proj_ip": 6.79,
+          "proj_hits_allowed": 6.3,
+          "proj_earned_runs": 3.28
+        }
+      ],
+      "home_batter_props": [
+        {
+          "order": 1,
+          "player": "Shohei Ohtani",
+          "id": "ohtas001",
+          "proj_hits": 1.05,
+          "p_1plus_hit": 0.693,
+          "proj_tb": 2.3,
+          "p_over_1p5_tb": 0.503,
+          "proj_hr": 0.33,
+          "p_hr": 0.29,
+          "proj_runs": 0.74,
+          "proj_rbi": 0.66
+        },
+        {
+          "order": 2,
+          "player": "Mookie Betts",
+          "id": "bettm001",
+          "proj_hits": 1.01,
+          "p_1plus_hit": 0.668,
+          "proj_tb": 1.73,
+          "p_over_1p5_tb": 0.414,
+          "proj_hr": 0.171,
+          "p_hr": 0.158,
+          "proj_runs": 0.56,
+          "proj_rbi": 0.48
+        },
+        {
+          "order": 3,
+          "player": "Freddie Freeman",
+          "id": "freef001",
+          "proj_hits": 1.03,
+          "p_1plus_hit": 0.684,
+          "proj_tb": 1.77,
+          "p_over_1p5_tb": 0.442,
+          "proj_hr": 0.157,
+          "p_hr": 0.148,
+          "proj_runs": 0.49,
+          "proj_rbi": 0.53
+        },
+        {
+          "order": 4,
+          "player": "Teoscar Hern\u00e1ndez",
+          "id": "hernt002",
+          "proj_hits": 0.92,
+          "p_1plus_hit": 0.633,
+          "proj_tb": 1.69,
+          "p_over_1p5_tb": 0.405,
+          "proj_hr": 0.186,
+          "p_hr": 0.173,
+          "proj_runs": 0.45,
+          "proj_rbi": 0.58
+        },
+        {
+          "order": 5,
+          "player": "Michael Conforto",
+          "id": "confm001",
+          "proj_hits": 0.75,
+          "p_1plus_hit": 0.568,
+          "proj_tb": 1.33,
+          "p_over_1p5_tb": 0.321,
+          "proj_hr": 0.133,
+          "p_hr": 0.125,
+          "proj_runs": 0.39,
+          "proj_rbi": 0.44
+        },
+        {
+          "order": 6,
+          "player": "Andy Pages",
+          "id": "pagea001",
+          "proj_hits": 0.92,
+          "p_1plus_hit": 0.644,
+          "proj_tb": 1.6,
+          "p_over_1p5_tb": 0.39,
+          "proj_hr": 0.168,
+          "p_hr": 0.157,
+          "proj_runs": 0.41,
+          "proj_rbi": 0.48
+        },
+        {
+          "order": 7,
+          "player": "Enrique Hern\u00e1ndez",
+          "id": "herne001",
+          "proj_hits": 0.72,
+          "p_1plus_hit": 0.549,
+          "proj_tb": 1.21,
+          "p_over_1p5_tb": 0.292,
+          "proj_hr": 0.114,
+          "p_hr": 0.111,
+          "proj_runs": 0.34,
+          "proj_rbi": 0.35
+        },
+        {
+          "order": 8,
+          "player": "Hyeseong Kim",
+          "id": "kim-h003",
+          "proj_hits": 0.85,
+          "p_1plus_hit": 0.615,
+          "proj_tb": 1.35,
+          "p_over_1p5_tb": 0.329,
+          "proj_hr": 0.106,
+          "p_hr": 0.102,
+          "proj_runs": 0.38,
+          "proj_rbi": 0.35
+        },
+        {
+          "order": 9,
+          "player": "Ben Rortvedt",
+          "id": "rortb001",
+          "proj_hits": 0.64,
+          "p_1plus_hit": 0.505,
+          "proj_tb": 0.96,
+          "p_over_1p5_tb": 0.242,
+          "proj_hr": 0.065,
+          "p_hr": 0.063,
+          "proj_runs": 0.37,
+          "proj_rbi": 0.26
+        }
+      ],
+      "away_batter_props": [
+        {
+          "order": 1,
+          "player": "Fernando Tat\u00eds",
+          "id": "tatif002",
+          "proj_hits": 1.01,
+          "p_1plus_hit": 0.672,
+          "proj_tb": 1.65,
+          "p_over_1p5_tb": 0.403,
+          "proj_hr": 0.142,
+          "p_hr": 0.134,
+          "proj_runs": 0.53,
+          "proj_rbi": 0.43
+        },
+        {
+          "order": 2,
+          "player": "Ryan O'Hearn",
+          "id": "ohear001",
+          "proj_hits": 1.0,
+          "p_1plus_hit": 0.667,
+          "proj_tb": 1.54,
+          "p_over_1p5_tb": 0.385,
+          "proj_hr": 0.11,
+          "p_hr": 0.103,
+          "proj_runs": 0.46,
+          "proj_rbi": 0.4
+        },
+        {
+          "order": 3,
+          "player": "Manny Machado",
+          "id": "machm001",
+          "proj_hits": 0.98,
+          "p_1plus_hit": 0.655,
+          "proj_tb": 1.61,
+          "p_over_1p5_tb": 0.385,
+          "proj_hr": 0.146,
+          "p_hr": 0.137,
+          "proj_runs": 0.43,
+          "proj_rbi": 0.47
+        },
+        {
+          "order": 4,
+          "player": "Jackson Merrill",
+          "id": "merrj002",
+          "proj_hits": 1.02,
+          "p_1plus_hit": 0.669,
+          "proj_tb": 1.68,
+          "p_over_1p5_tb": 0.416,
+          "proj_hr": 0.123,
+          "p_hr": 0.117,
+          "proj_runs": 0.42,
+          "proj_rbi": 0.5
+        },
+        {
+          "order": 5,
+          "player": "Xander Bogaerts",
+          "id": "bogax001",
+          "proj_hits": 0.93,
+          "p_1plus_hit": 0.641,
+          "proj_tb": 1.37,
+          "p_over_1p5_tb": 0.345,
+          "proj_hr": 0.082,
+          "p_hr": 0.078,
+          "proj_runs": 0.37,
+          "proj_rbi": 0.4
+        },
+        {
+          "order": 6,
+          "player": "Gavin Sheets",
+          "id": "sheeg001",
+          "proj_hits": 0.82,
+          "p_1plus_hit": 0.59,
+          "proj_tb": 1.32,
+          "p_over_1p5_tb": 0.324,
+          "proj_hr": 0.107,
+          "p_hr": 0.102,
+          "proj_runs": 0.39,
+          "proj_rbi": 0.39
+        },
+        {
+          "order": 7,
+          "player": "Jake Cronenworth",
+          "id": "cronj001",
+          "proj_hits": 0.76,
+          "p_1plus_hit": 0.558,
+          "proj_tb": 1.17,
+          "p_over_1p5_tb": 0.297,
+          "proj_hr": 0.069,
+          "p_hr": 0.067,
+          "proj_runs": 0.34,
+          "proj_rbi": 0.33
+        },
+        {
+          "order": 8,
+          "player": "Jose Iglesias",
+          "id": "iglej001",
+          "proj_hits": 0.89,
+          "p_1plus_hit": 0.621,
+          "proj_tb": 1.2,
+          "p_over_1p5_tb": 0.321,
+          "proj_hr": 0.042,
+          "p_hr": 0.042,
+          "proj_runs": 0.33,
+          "proj_rbi": 0.33
+        },
+        {
+          "order": 9,
+          "player": "Freddy Fermin",
+          "id": "fermf002",
+          "proj_hits": 0.83,
+          "p_1plus_hit": 0.595,
+          "proj_tb": 1.16,
+          "p_over_1p5_tb": 0.3,
+          "proj_hr": 0.059,
+          "p_hr": 0.058,
+          "proj_runs": 0.32,
+          "proj_rbi": 0.33
+        }
+      ],
+      "starters": {
+        "home": "Clayton Kershaw",
+        "away": "Yu Darvish"
+      }
+    },
+    {
+      "home_team": "NYA",
+      "away_team": "BOS",
+      "date": "2026-07-12",
+      "park": "NYC21",
+      "moneyline": {
+        "p_home": 0.5809,
+        "p_away": 0.4191,
+        "fair_home": -139,
+        "fair_away": 139,
+        "favorite": "NYA"
+      },
+      "score": {
+        "projected_away": 3,
+        "projected_home": 4,
+        "exp_away_runs": 3.42,
+        "exp_home_runs": 4.25
+      },
+      "total": {
+        "exp_total": 7.67,
+        "line": 7.5,
+        "p_over": 0.4625,
+        "p_under": 0.5375
+      },
+      "run_line": {
+        "home_-1.5": 0.4267,
+        "away_+1.5": 0.5733,
+        "away_-1.5": 0.2794,
+        "home_+1.5": 0.7206
+      },
+      "first_5_innings": {
+        "p_home": 0.5923,
+        "p_away": 0.4077,
+        "exp_total": 4.18,
+        "line": 4.0
+      },
+      "pitcher_props": [
+        {
+          "player": "Gerrit Cole",
+          "id": "coleg001",
+          "proj_k": 7.9,
+          "k_line": 8.0,
+          "p_over_k": 0.388,
+          "proj_ip": 7.07,
+          "proj_hits_allowed": 5.84,
+          "proj_earned_runs": 2.44
+        },
+        {
+          "player": "Kutter Crawford",
+          "id": "crawk001",
+          "proj_k": 7.15,
+          "k_line": 7.0,
+          "p_over_k": 0.429,
+          "proj_ip": 6.85,
+          "proj_hits_allowed": 5.77,
+          "proj_earned_runs": 3.33
+        }
+      ],
+      "home_batter_props": [
+        {
+          "order": 1,
+          "player": "Trent Grisham",
+          "id": "grist001",
+          "proj_hits": 0.81,
+          "p_1plus_hit": 0.588,
+          "proj_tb": 1.63,
+          "p_over_1p5_tb": 0.372,
+          "proj_hr": 0.222,
+          "p_hr": 0.203,
+          "proj_runs": 0.6,
+          "proj_rbi": 0.46
+        },
+        {
+          "order": 2,
+          "player": "Ben Rice",
+          "id": "riceb001",
+          "proj_hits": 0.87,
+          "p_1plus_hit": 0.607,
+          "proj_tb": 1.71,
+          "p_over_1p5_tb": 0.405,
+          "proj_hr": 0.197,
+          "p_hr": 0.18,
+          "proj_runs": 0.55,
+          "proj_rbi": 0.48
+        },
+        {
+          "order": 3,
+          "player": "Aaron Judge",
+          "id": "judga001",
+          "proj_hits": 1.02,
+          "p_1plus_hit": 0.675,
+          "proj_tb": 2.26,
+          "p_over_1p5_tb": 0.489,
+          "proj_hr": 0.351,
+          "p_hr": 0.307,
+          "proj_runs": 0.69,
+          "proj_rbi": 0.72
+        },
+        {
+          "order": 4,
+          "player": "Cody Bellinger",
+          "id": "bellc002",
+          "proj_hits": 0.95,
+          "p_1plus_hit": 0.651,
+          "proj_tb": 1.68,
+          "p_over_1p5_tb": 0.394,
+          "proj_hr": 0.176,
+          "p_hr": 0.164,
+          "proj_runs": 0.46,
+          "proj_rbi": 0.53
+        },
+        {
+          "order": 5,
+          "player": "Giancarlo Stanton",
+          "id": "stanm004",
+          "proj_hits": 0.8,
+          "p_1plus_hit": 0.59,
+          "proj_tb": 1.74,
+          "p_over_1p5_tb": 0.387,
+          "proj_hr": 0.263,
+          "p_hr": 0.239,
+          "proj_runs": 0.49,
+          "proj_rbi": 0.61
+        },
+        {
+          "order": 6,
+          "player": "Austin Wells",
+          "id": "wella002",
+          "proj_hits": 0.77,
+          "p_1plus_hit": 0.563,
+          "proj_tb": 1.48,
+          "p_over_1p5_tb": 0.364,
+          "proj_hr": 0.169,
+          "p_hr": 0.158,
+          "proj_runs": 0.39,
+          "proj_rbi": 0.44
+        },
+        {
+          "order": 7,
+          "player": "Anthony Volpe",
+          "id": "volpa001",
+          "proj_hits": 0.77,
+          "p_1plus_hit": 0.563,
+          "proj_tb": 1.36,
+          "p_over_1p5_tb": 0.336,
+          "proj_hr": 0.123,
+          "p_hr": 0.119,
+          "proj_runs": 0.36,
+          "proj_rbi": 0.36
+        },
+        {
+          "order": 8,
+          "player": "Ryan McMahon",
+          "id": "mcmar001",
+          "proj_hits": 0.72,
+          "p_1plus_hit": 0.539,
+          "proj_tb": 1.28,
+          "p_over_1p5_tb": 0.315,
+          "proj_hr": 0.126,
+          "p_hr": 0.12,
+          "proj_runs": 0.37,
+          "proj_rbi": 0.35
+        },
+        {
+          "order": 9,
+          "player": "Jos\u00e9 Caballero",
+          "id": "cabaj001",
+          "proj_hits": 0.68,
+          "p_1plus_hit": 0.513,
+          "proj_tb": 1.09,
+          "p_over_1p5_tb": 0.279,
+          "proj_hr": 0.079,
+          "p_hr": 0.077,
+          "proj_runs": 0.35,
+          "proj_rbi": 0.29
+        }
+      ],
+      "away_batter_props": [
+        {
+          "order": 1,
+          "player": "Jarren Duran",
+          "id": "duraj001",
+          "proj_hits": 1.01,
+          "p_1plus_hit": 0.668,
+          "proj_tb": 1.71,
+          "p_over_1p5_tb": 0.434,
+          "proj_hr": 0.117,
+          "p_hr": 0.112,
+          "proj_runs": 0.49,
+          "proj_rbi": 0.38
+        },
+        {
+          "order": 2,
+          "player": "Trevor Story",
+          "id": "stort001",
+          "proj_hits": 0.92,
+          "p_1plus_hit": 0.63,
+          "proj_tb": 1.54,
+          "p_over_1p5_tb": 0.368,
+          "proj_hr": 0.146,
+          "p_hr": 0.134,
+          "proj_runs": 0.42,
+          "proj_rbi": 0.42
+        },
+        {
+          "order": 3,
+          "player": "Masataka Yoshida",
+          "id": "yoshm002",
+          "proj_hits": 0.98,
+          "p_1plus_hit": 0.665,
+          "proj_tb": 1.47,
+          "p_over_1p5_tb": 0.378,
+          "proj_hr": 0.096,
+          "p_hr": 0.094,
+          "proj_runs": 0.38,
+          "proj_rbi": 0.39
+        },
+        {
+          "order": 4,
+          "player": "Ceddanne Rafaela",
+          "id": "rafac001",
+          "proj_hits": 0.89,
+          "p_1plus_hit": 0.628,
+          "proj_tb": 1.45,
+          "p_over_1p5_tb": 0.364,
+          "proj_hr": 0.11,
+          "p_hr": 0.105,
+          "proj_runs": 0.38,
+          "proj_rbi": 0.41
+        },
+        {
+          "order": 5,
+          "player": "Wilyer Abreu",
+          "id": "abrew002",
+          "proj_hits": 0.85,
+          "p_1plus_hit": 0.605,
+          "proj_tb": 1.57,
+          "p_over_1p5_tb": 0.38,
+          "proj_hr": 0.168,
+          "p_hr": 0.156,
+          "proj_runs": 0.42,
+          "proj_rbi": 0.48
+        },
+        {
+          "order": 6,
+          "player": "Nathaniel Lowe",
+          "id": "lowen001",
+          "proj_hits": 0.79,
+          "p_1plus_hit": 0.583,
+          "proj_tb": 1.29,
+          "p_over_1p5_tb": 0.313,
+          "proj_hr": 0.114,
+          "p_hr": 0.109,
+          "proj_runs": 0.37,
+          "proj_rbi": 0.37
+        },
+        {
+          "order": 7,
+          "player": "Connor Wong",
+          "id": "wongc001",
+          "proj_hits": 0.77,
+          "p_1plus_hit": 0.553,
+          "proj_tb": 1.19,
+          "p_over_1p5_tb": 0.298,
+          "proj_hr": 0.081,
+          "p_hr": 0.077,
+          "proj_runs": 0.31,
+          "proj_rbi": 0.32
+        },
+        {
+          "order": 8,
+          "player": "David Hamilton",
+          "id": "hamid002",
+          "proj_hits": 0.72,
+          "p_1plus_hit": 0.539,
+          "proj_tb": 1.16,
+          "p_over_1p5_tb": 0.282,
+          "proj_hr": 0.096,
+          "p_hr": 0.092,
+          "proj_runs": 0.33,
+          "proj_rbi": 0.34
+        },
+        {
+          "order": 9,
+          "player": "Nick Sogard",
+          "id": "sogan001",
+          "proj_hits": 0.77,
+          "p_1plus_hit": 0.566,
+          "proj_tb": 1.13,
+          "p_over_1p5_tb": 0.294,
+          "proj_hr": 0.06,
+          "p_hr": 0.058,
+          "proj_runs": 0.32,
+          "proj_rbi": 0.3
+        }
+      ],
+      "starters": {
+        "home": "Gerrit Cole",
+        "away": "Kutter Crawford"
+      }
+    },
+    {
+      "home_team": "ATL",
+      "away_team": "PHI",
+      "date": "2026-07-12",
+      "park": "ATL03",
+      "moneyline": {
+        "p_home": 0.4879,
+        "p_away": 0.5121,
+        "fair_home": 105,
+        "fair_away": -105,
+        "favorite": "PHI"
+      },
+      "score": {
+        "projected_away": 5,
+        "projected_home": 4,
+        "exp_away_runs": 4.65,
+        "exp_home_runs": 3.98
+      },
+      "total": {
+        "exp_total": 8.63,
+        "line": 8.5,
+        "p_over": 0.4701,
+        "p_under": 0.5299
+      },
+      "run_line": {
+        "home_-1.5": 0.3203,
+        "away_+1.5": 0.6797,
+        "away_-1.5": 0.4071,
+        "home_+1.5": 0.5929
+      },
+      "first_5_innings": {
+        "p_home": 0.4371,
+        "p_away": 0.5629,
+        "exp_total": 4.62,
+        "line": 4.5
+      },
+      "pitcher_props": [
+        {
+          "player": "salet001",
+          "id": "salet001",
+          "proj_k": 6.59,
+          "k_line": 6.5,
+          "p_over_k": 0.504,
+          "proj_ip": 6.57,
+          "proj_hits_allowed": 6.61,
+          "proj_earned_runs": 3.37
+        },
+        {
+          "player": "Zack Wheeler",
+          "id": "wheez001",
+          "proj_k": 8.1,
+          "k_line": 8.0,
+          "p_over_k": 0.426,
+          "proj_ip": 6.96,
+          "proj_hits_allowed": 5.96,
+          "proj_earned_runs": 2.84
+        }
+      ],
+      "home_batter_props": [
+        {
+          "order": 1,
+          "player": "Monte Harrison",
+          "id": "harrm003",
+          "proj_hits": 0.91,
+          "p_1plus_hit": 0.63,
+          "proj_tb": 1.57,
+          "p_over_1p5_tb": 0.383,
+          "proj_hr": 0.147,
+          "p_hr": 0.142,
+          "proj_runs": 0.5,
+          "proj_rbi": 0.39
+        },
+        {
+          "order": 2,
+          "player": "Ozzie Albies",
+          "id": "albio001",
+          "proj_hits": 0.99,
+          "p_1plus_hit": 0.669,
+          "proj_tb": 1.66,
+          "p_over_1p5_tb": 0.404,
+          "proj_hr": 0.146,
+          "p_hr": 0.136,
+          "proj_runs": 0.49,
+          "proj_rbi": 0.44
+        },
+        {
+          "order": 3,
+          "player": "riled001",
+          "id": "riled001",
+          "proj_hits": 0.91,
+          "p_1plus_hit": 0.629,
+          "proj_tb": 1.52,
+          "p_over_1p5_tb": 0.376,
+          "proj_hr": 0.129,
+          "p_hr": 0.123,
+          "proj_runs": 0.45,
+          "proj_rbi": 0.42
+        },
+        {
+          "order": 4,
+          "player": "Matt Olson",
+          "id": "olsom001",
+          "proj_hits": 0.9,
+          "p_1plus_hit": 0.627,
+          "proj_tb": 1.7,
+          "p_over_1p5_tb": 0.399,
+          "proj_hr": 0.192,
+          "p_hr": 0.179,
+          "proj_runs": 0.54,
+          "proj_rbi": 0.52
+        },
+        {
+          "order": 5,
+          "player": "Marcell Ozuna",
+          "id": "ozunm001",
+          "proj_hits": 0.87,
+          "p_1plus_hit": 0.609,
+          "proj_tb": 1.66,
+          "p_over_1p5_tb": 0.38,
+          "proj_hr": 0.207,
+          "p_hr": 0.19,
+          "proj_runs": 0.51,
+          "proj_rbi": 0.57
+        },
+        {
+          "order": 6,
+          "player": "duvad001",
+          "id": "duvad001",
+          "proj_hits": 0.83,
+          "p_1plus_hit": 0.594,
+          "proj_tb": 1.43,
+          "p_over_1p5_tb": 0.349,
+          "proj_hr": 0.128,
+          "p_hr": 0.122,
+          "proj_runs": 0.4,
+          "proj_rbi": 0.44
+        },
+        {
+          "order": 7,
+          "player": "Michael Harris",
+          "id": "harrm004",
+          "proj_hits": 0.92,
+          "p_1plus_hit": 0.632,
+          "proj_tb": 1.53,
+          "p_over_1p5_tb": 0.372,
+          "proj_hr": 0.123,
+          "p_hr": 0.119,
+          "proj_runs": 0.38,
+          "proj_rbi": 0.45
+        },
+        {
+          "order": 8,
+          "player": "kelms001",
+          "id": "kelms001",
+          "proj_hits": 0.8,
+          "p_1plus_hit": 0.578,
+          "proj_tb": 1.35,
+          "p_over_1p5_tb": 0.328,
+          "proj_hr": 0.122,
+          "p_hr": 0.116,
+          "proj_runs": 0.37,
+          "proj_rbi": 0.41
+        },
+        {
+          "order": 9,
+          "player": "Orlando Arcia",
+          "id": "arcio002",
+          "proj_hits": 0.74,
+          "p_1plus_hit": 0.555,
+          "proj_tb": 1.2,
+          "p_over_1p5_tb": 0.299,
+          "proj_hr": 0.099,
+          "p_hr": 0.096,
+          "proj_runs": 0.34,
+          "proj_rbi": 0.36
+        }
+      ],
+      "away_batter_props": [
+        {
+          "order": 1,
+          "player": "Kyle Schwarber",
+          "id": "schwk001",
+          "proj_hits": 0.93,
+          "p_1plus_hit": 0.63,
+          "proj_tb": 2.01,
+          "p_over_1p5_tb": 0.427,
+          "proj_hr": 0.305,
+          "p_hr": 0.265,
+          "proj_runs": 0.75,
+          "proj_rbi": 0.63
+        },
+        {
+          "order": 2,
+          "player": "Trea Turner",
+          "id": "turnt001",
+          "proj_hits": 1.21,
+          "p_1plus_hit": 0.743,
+          "proj_tb": 1.89,
+          "p_over_1p5_tb": 0.476,
+          "proj_hr": 0.14,
+          "p_hr": 0.131,
+          "proj_runs": 0.56,
+          "proj_rbi": 0.51
+        },
+        {
+          "order": 3,
+          "player": "Bryce Harper",
+          "id": "harpb003",
+          "proj_hits": 1.08,
+          "p_1plus_hit": 0.706,
+          "proj_tb": 1.92,
+          "p_over_1p5_tb": 0.452,
+          "proj_hr": 0.196,
+          "p_hr": 0.179,
+          "proj_runs": 0.58,
+          "proj_rbi": 0.6
+        },
+        {
+          "order": 4,
+          "player": "Nick Castellanos",
+          "id": "castn001",
+          "proj_hits": 1.06,
+          "p_1plus_hit": 0.692,
+          "proj_tb": 1.75,
+          "p_over_1p5_tb": 0.424,
+          "proj_hr": 0.149,
+          "p_hr": 0.143,
+          "proj_runs": 0.48,
+          "proj_rbi": 0.6
+        },
+        {
+          "order": 5,
+          "player": "J. T. Realmuto",
+          "id": "realj001",
+          "proj_hits": 1.0,
+          "p_1plus_hit": 0.663,
+          "proj_tb": 1.57,
+          "p_over_1p5_tb": 0.388,
+          "proj_hr": 0.12,
+          "p_hr": 0.115,
+          "proj_runs": 0.48,
+          "proj_rbi": 0.48
+        },
+        {
+          "order": 6,
+          "player": "Alec Bohm",
+          "id": "bohma001",
+          "proj_hits": 1.09,
+          "p_1plus_hit": 0.702,
+          "proj_tb": 1.66,
+          "p_over_1p5_tb": 0.423,
+          "proj_hr": 0.111,
+          "p_hr": 0.107,
+          "proj_runs": 0.46,
+          "proj_rbi": 0.48
+        },
+        {
+          "order": 7,
+          "player": "Brandon Marsh",
+          "id": "marsb002",
+          "proj_hits": 0.96,
+          "p_1plus_hit": 0.651,
+          "proj_tb": 1.54,
+          "p_over_1p5_tb": 0.385,
+          "proj_hr": 0.114,
+          "p_hr": 0.111,
+          "proj_runs": 0.46,
+          "proj_rbi": 0.46
+        },
+        {
+          "order": 8,
+          "player": "Bryson Stott",
+          "id": "stotb001",
+          "proj_hits": 0.93,
+          "p_1plus_hit": 0.638,
+          "proj_tb": 1.36,
+          "p_over_1p5_tb": 0.338,
+          "proj_hr": 0.085,
+          "p_hr": 0.082,
+          "proj_runs": 0.42,
+          "proj_rbi": 0.43
+        },
+        {
+          "order": 9,
+          "player": "rojaj004",
+          "id": "rojaj004",
+          "proj_hits": 0.87,
+          "p_1plus_hit": 0.612,
+          "proj_tb": 1.43,
+          "p_over_1p5_tb": 0.348,
+          "proj_hr": 0.122,
+          "p_hr": 0.116,
+          "proj_runs": 0.46,
+          "proj_rbi": 0.47
+        }
+      ],
+      "starters": {
+        "home": "salet001",
+        "away": "Zack Wheeler"
+      }
+    }
+  ]
+}
