@@ -42,15 +42,32 @@ def win_prob_figure(home_team: str, away_team: str, p_home: float, p_away: float
     return fig
 
 
-def total_distribution_figure(total_runs: np.ndarray, weights: np.ndarray, line: float):
+def total_distribution_figure(total_runs: np.ndarray, weights: np.ndarray, line: float,
+                              interval: tuple | None = None):
+    """Histogram of the projected total, with the line and (optionally) a shaded
+    credible interval ``(lo, hi)``."""
     fig, ax = plt.subplots(figsize=(5, 3))
     maxr = int(np.percentile(total_runs, 99)) + 1
     bins = np.arange(0, maxr + 1)
     ax.hist(total_runs, bins=bins, weights=weights, density=True,
             color="#2563eb", alpha=0.75)
+    if interval is not None:
+        ax.axvspan(interval[0], interval[1], color="#93c5fd", alpha=0.35,
+                   label=f"{interval[0]}–{interval[1]} interval")
     ax.axvline(line, color="#ef4444", linestyle="--", label=f"line {line}")
     ax.set_xlabel("Total runs"); ax.set_ylabel("Probability")
     ax.set_title("Projected total runs")
     ax.legend(fontsize=8)
     fig.tight_layout()
     return fig
+
+
+# Confidence-level display colors (light/neutral, theme-agnostic).
+CONF_COLOR = {"High": "#16a34a", "Medium": "#d97706", "Low": "#dc2626"}
+
+
+def confidence_badge_md(level: str) -> str:
+    """A small colored HTML badge for a High/Medium/Low confidence level."""
+    color = CONF_COLOR.get(level, "#6b7280")
+    return (f"<span style='background:{color};color:white;padding:2px 8px;"
+            f"border-radius:10px;font-size:0.8em;font-weight:600'>{level}</span>")

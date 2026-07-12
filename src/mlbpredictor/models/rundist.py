@@ -65,6 +65,21 @@ class RunDistModel:
             "joint": joint,
         }
 
+    def total_quantiles(self, exp_home: np.ndarray, exp_away: np.ndarray, qs) -> np.ndarray:
+        """Integer total-runs quantiles per game (for interval-coverage checks).
+
+        Returns an ``(N, len(qs))`` array. Uses the convolved home+away NB totals.
+        """
+        eh = np.asarray(exp_home, float) + self.hfa_runs
+        ea = np.asarray(exp_away, float)
+        qs = np.asarray(qs, float)
+        out = np.zeros((len(eh), len(qs)))
+        for i in range(len(eh)):
+            pmf = np.convolve(self._pmf(eh[i]), self._pmf(ea[i]))
+            cdf = np.cumsum(pmf)
+            out[i] = np.searchsorted(cdf, qs)
+        return out
+
     @staticmethod
     def over_prob(total_pmf: np.ndarray, line: float) -> float:
         k = np.arange(len(total_pmf))

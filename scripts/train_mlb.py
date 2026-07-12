@@ -27,6 +27,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from mlbpredictor import backtest                                     # noqa: E402
+from mlbpredictor.config import load_config                           # noqa: E402
 from mlbpredictor.data import load_game_logs, load_rate_aggregates   # noqa: E402
 from mlbpredictor.features import GameFeatureBuilder                  # noqa: E402
 from mlbpredictor.models.baselines import EloLogistic, HomeBaseRate  # noqa: E402
@@ -109,6 +110,19 @@ def main() -> None:
     print(f"\nScore accuracy (test {test_s}):  total runs MAE {totals['runs_mae']} / "
           f"RMSE {totals['runs_rmse']}  (pred {totals['mean_pred']} vs actual {totals['mean_actual']})")
     print(f"  per-team runs MAE {side['team_runs_mae']}")
+
+    # ---- interval calibration + confidence-band reliability ---- #
+    levels = load_config()["intervals"]["levels"]
+    coverage = backtest.evaluate_total_intervals(
+        members["rundist"], test["exp_home_runs"].to_numpy(), test["exp_away_runs"].to_numpy(),
+        test["total"].to_numpy(), levels=levels)
+    member_spread = np.vstack(list(ens.member_probs_for(test).values())).std(axis=0)
+    conf_bands = backtest.accuracy_by_confidence(ens_p, member_spread, y)
+    print("\nInterval calibration (should match the nominal level):  "
+          + ", ".join(f"{k.replace('coverage_','')}% → {v:.0%}" for k, v in coverage.items()))
+    print("Accuracy by confidence band (High should beat Low):  "
+          + ", ".join(f"{b} {m['accuracy']:.1%} (n={m['n']})" for b, m in conf_bands.items()))
+
     print(f"\nEnsemble weights: "
           + ", ".join(f"{PRETTY.get(k,k)} {v:.2f}" for k, v in ens.weight_map.items())
           + f"  | temperature {ens.temperature:.2f}")
@@ -125,7 +139,8 @@ def main() -> None:
         metrics={
             "backtest": {"split": {"train": sorted(int(s) for s in train.season.unique()),
                                    "val": val_s, "test": test_s},
-                         "moneyline": rows, "totals": totals, "team_runs": side},
+                         "moneyline": rows, "totals": totals, "team_runs": side,
+                         "interval_coverage": coverage, "confidence_bands": conf_bands},
             "calibration": calib,
             "weights": ens.weight_map, "temperature": ens.temperature,
             "deploy_weights": ens_all.weight_map,

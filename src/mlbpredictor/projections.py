@@ -140,3 +140,6 @@ class ProjectionSystem:
 
     def known_batter(self, retro_id: str) -> bool:
         return retro_id in self.bat_
+
+    def known_pitcher(self, retro_id: str) -> bool:
+        return retro_id in self.pit_

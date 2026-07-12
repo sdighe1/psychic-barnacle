@@ -27,6 +27,10 @@ projections:
   age_peak: 27.0
   age_adj_per_year: 0.003
 
+intervals:
+  # Central credible-interval levels reported for every count output (0.5 = IQR).
+  levels: [0.5, 0.9]
+
 simulation:
   n_sims: 5000
   # Pull the starter after this many times through the order OR pitch-count proxy.

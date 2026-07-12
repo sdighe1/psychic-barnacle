@@ -27,6 +27,9 @@ DEFAULTS: dict = {
         "age_peak": 27.0,
         "age_adj_per_year": 0.003,
     },
+    "intervals": {
+        "levels": [0.5, 0.9],
+    },
     "simulation": {
         "n_sims": 5000,
         "starter_max_tto": 3.0,

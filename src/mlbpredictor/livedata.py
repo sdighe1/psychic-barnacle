@@ -56,6 +56,13 @@ class GameInput:
     away_lineup: list[str] = field(default_factory=list)
     park: str | None = None
     source: str = "manual"
+    # True when a full 9-man lineup was actually provided (posted/entered), not defaulted.
+    home_lineup_confirmed: bool = False
+    away_lineup_confirmed: bool = False
+
+    @property
+    def lineups_confirmed(self) -> bool:
+        return self.home_lineup_confirmed and self.away_lineup_confirmed
 
 
 # --------------------------------------------------------------------------- #
@@ -135,11 +142,12 @@ def parse_statsapi_schedule(payload: dict) -> list[GameInput]:
             asp = retro_for_mlbam((away.get("probablePitcher") or {}).get("id")) \
                 or retro_for_name((away.get("probablePitcher") or {}).get("fullName", ""))
             lineups = g.get("lineups", {}) or {}
+            hl = _lineup_retro(lineups.get("homePlayers"))
+            al = _lineup_retro(lineups.get("awayPlayers"))
             games.append(GameInput(
                 home_team=ht, away_team=at, home_sp=hsp, away_sp=asp,
-                home_lineup=_lineup_retro(lineups.get("homePlayers")),
-                away_lineup=_lineup_retro(lineups.get("awayPlayers")),
-                park=None, source="statsapi"))
+                home_lineup=hl, away_lineup=al, park=None, source="statsapi",
+                home_lineup_confirmed=len(hl) >= 9, away_lineup_confirmed=len(al) >= 9))
     return games
 
 
@@ -170,13 +178,14 @@ def load_slate_file(path) -> list[GameInput]:
     out = []
     for g in doc.get("games", []):
         home, away = resolve_team(g["home"]), resolve_team(g["away"])
+        hl = _resolve_lineup(g.get("home_lineup"), home)
+        al = _resolve_lineup(g.get("away_lineup"), away)
         out.append(GameInput(
             home_team=home, away_team=away,
             home_sp=_resolve_starter(g.get("home_sp"), home),
             away_sp=_resolve_starter(g.get("away_sp"), away),
-            home_lineup=_resolve_lineup(g.get("home_lineup"), home),
-            away_lineup=_resolve_lineup(g.get("away_lineup"), away),
-            park=g.get("park"), source="manual"))
+            home_lineup=hl, away_lineup=al, park=g.get("park"), source="manual",
+            home_lineup_confirmed=len(hl) >= 9, away_lineup_confirmed=len(al) >= 9))
     return out
 
 

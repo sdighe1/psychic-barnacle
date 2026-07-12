@@ -57,7 +57,8 @@ def main() -> None:
           f"model trained through {predictor.trained_through}\n")
 
     predictions = []
-    header = f"{'Away':>4} @ {'Home':<4} {'Fav':>4} {'Win%':>6} {'Fair':>7}  {'Proj':>7} {'Total':>6} {'O/U':>5}"
+    header = (f"{'Away':>4} @ {'Home':<4} {'Fav':>4} {'Win%':>6} {'Fair':>7} {'Conf':>7}  "
+              f"{'Proj':>7} {'Total':>6} {'O/U':>5}")
     print(header); print("-" * len(header))
     for g in games:
         if len(g.home_lineup) < 9 or len(g.away_lineup) < 9 or not g.home_sp or not g.away_sp:
@@ -66,14 +67,15 @@ def main() -> None:
         pred = predictor.predict_game(
             g.home_team, g.away_team, g.home_sp, g.away_sp,
             g.home_lineup, g.away_lineup, park=g.park, date=args.date,
-            n_sims=args.n_sims)
+            lineup_confirmed=g.lineups_confirmed, n_sims=args.n_sims)
         d = pred.to_dict()
         predictions.append(d)
         a, h = d["score"]["projected_away"], d["score"]["projected_home"]
         fav = d["moneyline"]["favorite"]
         favp = d["moneyline"]["p_home"] if fav == g.home_team else d["moneyline"]["p_away"]
         fair = d["moneyline"]["fair_home"] if fav == g.home_team else d["moneyline"]["fair_away"]
-        print(f"{g.away_team:>4} @ {g.home_team:<4} {fav:>4} {favp*100:>5.1f}% {fair:>+7d}  "
+        conf = d["confidence"]["level"]
+        print(f"{g.away_team:>4} @ {g.home_team:<4} {fav:>4} {favp*100:>5.1f}% {fair:>+7d} {conf:>7}  "
               f"{a:>3}-{h:<3} {d['total']['line']:>6.1f} {'O' if d['total']['p_over']>=0.5 else 'U'}"
               f"{max(d['total']['p_over'],d['total']['p_under'])*100:>4.0f}%")
 

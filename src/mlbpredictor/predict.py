@@ -50,15 +50,18 @@ class Predictor:
     # ------------------------------------------------------------------ #
     def predict_game(self, home_team: str, away_team: str, home_sp: str, away_sp: str,
                      home_lineup: list[str], away_lineup: list[str],
-                     park: str | None = None, date=None,
+                     park: str | None = None, date=None, lineup_confirmed: bool = False,
                      n_sims: int | None = None, seed: int | None = None) -> GamePrediction:
-        cfg = load_config()["simulation"]
+        full_cfg = load_config()
+        cfg = full_cfg["simulation"]
+        levels = tuple(full_cfg["intervals"]["levels"])
         n_sims = n_sims or int(cfg["n_sims"])
         seed = int(cfg["random_seed"]) if seed is None else seed
 
         feat = self.fb.match_features(home_team, away_team, home_sp, away_sp,
                                       home_lineup, away_lineup, park=park, date=date)
         p_home = float(np.clip(self.ens.predict_p_home(feat)[0], _CLIP, 1 - _CLIP))
+        member_probs = {n: float(v[0]) for n, v in self.ens.member_probs_for(feat).items()}
 
         ps = self.fb.deploy_proj
         pf = self.fb.park.factor(park)
@@ -76,6 +79,7 @@ class Predictor:
                             ghost_runner=bool(cfg["extra_innings_ghost_runner"]), seed=seed)
 
         weights = _importance_weights(res, p_home)
+        roster_coverage = self._roster_coverage(ps, home_lineup, away_lineup, home_sp, away_sp)
         return GamePrediction(
             home_team=home_team, away_team=away_team, p_home=p_home, p_away=1 - p_home,
             sim=res, weights=weights,
@@ -83,7 +87,17 @@ class Predictor:
             away_batters=[(i, name_for(i)) for i in away_lineup],
             home_sp=(home_sp, name_for(home_sp)), away_sp=(away_sp, name_for(away_sp)),
             park=park, date=str(date) if date is not None else None,
+            member_probs=member_probs, lineup_confirmed=bool(lineup_confirmed),
+            roster_coverage=roster_coverage, interval_levels=levels,
         )
+
+    @staticmethod
+    def _roster_coverage(ps, home_lineup, away_lineup, home_sp, away_sp) -> float:
+        """Fraction of the 18 batters + 2 starters that have real projections."""
+        known = sum(ps.known_batter(i) for i in list(home_lineup) + list(away_lineup))
+        known += ps.known_pitcher(home_sp) + ps.known_pitcher(away_sp)
+        total = len(home_lineup) + len(away_lineup) + 2
+        return known / total if total else 1.0
 
     def teams(self) -> list[str]:
         return self.fb.teams()

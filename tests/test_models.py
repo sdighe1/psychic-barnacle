@@ -103,3 +103,23 @@ def test_ensemble_blends_and_calibrates():
     # ensemble should be no worse than the base rate on the test set
     base = HomeBaseRate().fit(tr).predict_p_home(te)
     assert log_loss(p, te["home_win"].to_numpy()) <= log_loss(base, te["home_win"].to_numpy()) + 1e-6
+
+
+def test_ensemble_member_probs_for():
+    tr = _synthetic_feat(300, 1)
+    rd = RunDistModel()
+    members = {"rundist": rd, "elo_logistic": EloLogistic().fit(tr),
+               "base_rate": HomeBaseRate().fit(tr)}
+    ens = EnsembleModel(rd, members).fit_blend(tr)
+    mp = ens.member_probs_for(tr)
+    assert set(mp.keys()) == set(members.keys())
+    for arr in mp.values():
+        assert len(arr) == len(tr) and ((arr >= 0) & (arr <= 1)).all()
+
+
+def test_rundist_total_quantiles_monotonic():
+    rd = RunDistModel()
+    eh, ea = np.array([4.0, 6.5]), np.array([4.0, 5.5])   # totals ~8 vs ~12
+    q = rd.total_quantiles(eh, ea, [0.1, 0.5, 0.9])
+    assert (q[:, 0] <= q[:, 1]).all() and (q[:, 1] <= q[:, 2]).all()   # increasing in q
+    assert q[1, 1] > q[0, 1]                       # higher-scoring game has a higher median

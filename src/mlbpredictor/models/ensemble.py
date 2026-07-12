@@ -87,6 +87,16 @@ class EnsembleModel:
         b = self.weights @ self._member_probs(feat)
         return _temper(b, self.temperature)
 
+    def member_probs_for(self, feat: pd.DataFrame) -> dict:
+        """Per-component home-win probabilities, keyed by member name.
+
+        Used to gauge ensemble *agreement* for a game (a confidence signal): tight
+        agreement across Elo / run model / gradient boosting → higher confidence.
+        Returns ``{name: np.ndarray}`` (one value per row in ``feat``).
+        """
+        P = self._member_probs(feat)                # (m, N)
+        return {n: P[i] for i, n in enumerate(self.names)}
+
     def predict_frame(self, feat: pd.DataFrame) -> pd.DataFrame:
         p = self.predict_p_home(feat)
         rd = self.rundist.predict_frame(feat["exp_home_runs"].to_numpy(),

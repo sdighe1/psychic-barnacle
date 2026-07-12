@@ -25,9 +25,44 @@ Retrosheet mirror), so it builds with no paid feeds.
 - **Player props** — per-pitcher projected strikeouts / innings / hits / earned runs,
   and per-batter hits / total bases / home runs / runs / RBI, each with over/under
   probabilities.
+- **Confidence & intervals** — a High/Medium/Low confidence level on the moneyline pick,
+  and a numeric credible interval (50% and 90%) on every count output (runs, total, and
+  every prop), e.g. `Kershaw K: 6 (50% 4–8, 90% 2–10)`.
 
 All of it comes from **one simulation**, reweighted to the calibrated moneyline, so the
 score, the totals and the props never contradict the headline odds.
+
+## Confidence & uncertainty
+
+Because every number is a weighted statistic of the same simulation, the uncertainty is
+reported directly from it:
+
+- **Prediction intervals** — central 50% / 90% credible intervals (weighted quantiles of the
+  reconciled simulation) on team runs, the total, first-five, and every player prop. The
+  interval *is* the uncertainty for the score/totals/props.
+- **Game confidence level** (High / Medium / Low) for the moneyline pick — a composite of:
+  1. **decisiveness** — how far the win probability is from a coin flip (an edge to bet on);
+  2. **agreement** — how tightly the ensemble components (Elo, run model, gradient boosting) concur;
+  3. **input quality** — confirmed vs. guessed lineups, and how many players have real
+     projections rather than league-average fallbacks;
+  4. **stability** — the simulation's effective sample size after reconciliation.
+  The moneyline also carries a **win-probability range** (the min–max across the components).
+
+**These are validated in the backtest, not just asserted:**
+
+| Interval | Nominal | Empirical coverage (test 2025) |
+|---|---|---|
+| Total runs 50% | 50% | 57% |
+| Total runs 90% | 90% | 92% |
+
+| Confidence band | Moneyline accuracy | Games |
+|---|---|---|
+| High | 69.6% | 260 |
+| Medium | 56.3% | 1,282 |
+| Low | 52.7% | 888 |
+
+So a *High*-confidence pick has won ~70% of the time versus a near-coin-flip for *Low* — the
+label is meaningful, and the 90% interval really does contain the actual total ~90% of the time.
 
 ## How accurate is it?
 

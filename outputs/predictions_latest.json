@@ -10,24 +10,73 @@
       "away_team": "SDN",
       "date": "2026-07-12",
       "park": "LOS03",
+      "confidence": {
+        "level": "Medium",
+        "score": 0.565,
+        "components": {
+          "decisiveness": 0.46,
+          "agreement": 0.887,
+          "input_quality": 0.5,
+          "stability": 1.0
+        },
+        "n_eff": 4977
+      },
+      "data_quality": {
+        "lineup_confirmed": false,
+        "roster_coverage": 1.0,
+        "n_eff": 4977,
+        "n_sims": 5000
+      },
       "moneyline": {
         "p_home": 0.592,
         "p_away": 0.408,
         "fair_home": -145,
         "fair_away": 145,
-        "favorite": "LAN"
+        "favorite": "LAN",
+        "p_home_ci": [
+          0.53,
+          0.592
+        ]
       },
       "score": {
         "projected_away": 4,
         "projected_home": 4,
         "exp_away_runs": 3.59,
-        "exp_home_runs": 4.14
+        "exp_home_runs": 4.14,
+        "away_range": {
+          "range_50": [
+            2,
+            5
+          ],
+          "range_90": [
+            0,
+            9
+          ]
+        },
+        "home_range": {
+          "range_50": [
+            2,
+            6
+          ],
+          "range_90": [
+            0,
+            9
+          ]
+        }
       },
       "total": {
         "exp_total": 7.72,
         "line": 7.5,
         "p_over": 0.4674,
-        "p_under": 0.5326
+        "p_under": 0.5326,
+        "range_50": [
+          5,
+          10
+        ],
+        "range_90": [
+          2,
+          15
+        ]
       },
       "run_line": {
         "home_-1.5": 0.4179,
@@ -39,28 +88,116 @@
         "p_home": 0.5814,
         "p_away": 0.4186,
         "exp_total": 4.3,
-        "line": 4.5
+        "line": 4.5,
+        "range_50": [
+          2,
+          6
+        ],
+        "range_90": [
+          0,
+          10
+        ]
       },
       "pitcher_props": [
         {
           "player": "Clayton Kershaw",
           "id": "kersc001",
           "proj_k": 4.88,
+          "k_range": {
+            "range_50": [
+              3,
+              6
+            ],
+            "range_90": [
+              2,
+              8
+            ]
+          },
           "k_line": 5.0,
           "p_over_k": 0.357,
           "proj_ip": 6.9,
+          "ip_range": {
+            "range_50": [
+              6.0,
+              7.0
+            ],
+            "range_90": [
+              6.0,
+              8.0
+            ]
+          },
           "proj_hits_allowed": 6.23,
-          "proj_earned_runs": 2.58
+          "hits_allowed_range": {
+            "range_50": [
+              5,
+              8
+            ],
+            "range_90": [
+              3,
+              10
+            ]
+          },
+          "proj_earned_runs": 2.58,
+          "earned_runs_range": {
+            "range_50": [
+              1,
+              4
+            ],
+            "range_90": [
+              0,
+              7
+            ]
+          }
         },
         {
           "player": "Yu Darvish",
           "id": "darvy001",
           "proj_k": 6.19,
+          "k_range": {
+            "range_50": [
+              5,
+              8
+            ],
+            "range_90": [
+              3,
+              10
+            ]
+          },
           "k_line": 6.0,
           "p_over_k": 0.425,
           "proj_ip": 6.79,
+          "ip_range": {
+            "range_50": [
+              6.0,
+              7.0
+            ],
+            "range_90": [
+              6.0,
+              8.0
+            ]
+          },
           "proj_hits_allowed": 6.3,
-          "proj_earned_runs": 3.28
+          "hits_allowed_range": {
+            "range_50": [
+              5,
+              8
+            ],
+            "range_90": [
+              3,
+              10
+            ]
+          },
+          "proj_earned_runs": 3.28,
+          "earned_runs_range": {
+            "range_50": [
+              2,
+              5
+            ],
+            "range_90": [
+              0,
+              7
+            ]
+          }
         }
       ],
       "home_batter_props": [
@@ -69,8 +206,28 @@
           "player": "Shohei Ohtani",
           "id": "ohtas001",
           "proj_hits": 1.05,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.693,
           "proj_tb": 2.3,
+          "tb_range": {
+            "range_50": [
+              0,
+              4
+            ],
+            "range_90": [
+              0,
+              7
+            ]
+          },
           "p_over_1p5_tb": 0.503,
           "proj_hr": 0.33,
           "p_hr": 0.29,
@@ -82,8 +239,28 @@
           "player": "Mookie Betts",
           "id": "bettm001",
           "proj_hits": 1.01,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.668,
           "proj_tb": 1.73,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              6
+            ]
+          },
           "p_over_1p5_tb": 0.414,
           "proj_hr": 0.171,
           "p_hr": 0.158,
@@ -95,8 +272,28 @@
           "player": "Freddie Freeman",
           "id": "freef001",
           "proj_hits": 1.03,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.684,
           "proj_tb": 1.77,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.442,
           "proj_hr": 0.157,
           "p_hr": 0.148,
@@ -108,8 +305,28 @@
           "player": "Teoscar Hern\u00e1ndez",
           "id": "hernt002",
           "proj_hits": 0.92,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.633,
           "proj_tb": 1.69,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.405,
           "proj_hr": 0.186,
           "p_hr": 0.173,
@@ -121,8 +338,28 @@
           "player": "Michael Conforto",
           "id": "confm001",
           "proj_hits": 0.75,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.568,
           "proj_tb": 1.33,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.321,
           "proj_hr": 0.133,
           "p_hr": 0.125,
@@ -134,8 +371,28 @@
           "player": "Andy Pages",
           "id": "pagea001",
           "proj_hits": 0.92,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.644,
           "proj_tb": 1.6,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.39,
           "proj_hr": 0.168,
           "p_hr": 0.157,
@@ -147,8 +404,28 @@
           "player": "Enrique Hern\u00e1ndez",
           "id": "herne001",
           "proj_hits": 0.72,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.549,
           "proj_tb": 1.21,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              4
+            ]
+          },
           "p_over_1p5_tb": 0.292,
           "proj_hr": 0.114,
           "p_hr": 0.111,
@@ -160,8 +437,28 @@
           "player": "Hyeseong Kim",
           "id": "kim-h003",
           "proj_hits": 0.85,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.615,
           "proj_tb": 1.35,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.329,
           "proj_hr": 0.106,
           "p_hr": 0.102,
@@ -173,8 +470,28 @@
           "player": "Ben Rortvedt",
           "id": "rortb001",
           "proj_hits": 0.64,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.505,
           "proj_tb": 0.96,
+          "tb_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              4
+            ]
+          },
           "p_over_1p5_tb": 0.242,
           "proj_hr": 0.065,
           "p_hr": 0.063,
@@ -188,8 +505,28 @@
           "player": "Fernando Tat\u00eds",
           "id": "tatif002",
           "proj_hits": 1.01,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.672,
           "proj_tb": 1.65,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.403,
           "proj_hr": 0.142,
           "p_hr": 0.134,
@@ -201,8 +538,28 @@
           "player": "Ryan O'Hearn",
           "id": "ohear001",
           "proj_hits": 1.0,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.667,
           "proj_tb": 1.54,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.385,
           "proj_hr": 0.11,
           "p_hr": 0.103,
@@ -214,8 +571,28 @@
           "player": "Manny Machado",
           "id": "machm001",
           "proj_hits": 0.98,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.655,
           "proj_tb": 1.61,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.385,
           "proj_hr": 0.146,
           "p_hr": 0.137,
@@ -227,8 +604,28 @@
           "player": "Jackson Merrill",
           "id": "merrj002",
           "proj_hits": 1.02,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.669,
           "proj_tb": 1.68,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.416,
           "proj_hr": 0.123,
           "p_hr": 0.117,
@@ -240,8 +637,28 @@
           "player": "Xander Bogaerts",
           "id": "bogax001",
           "proj_hits": 0.93,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.641,
           "proj_tb": 1.37,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.345,
           "proj_hr": 0.082,
           "p_hr": 0.078,
@@ -253,8 +670,28 @@
           "player": "Gavin Sheets",
           "id": "sheeg001",
           "proj_hits": 0.82,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.59,
           "proj_tb": 1.32,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.324,
           "proj_hr": 0.107,
           "p_hr": 0.102,
@@ -266,8 +703,28 @@
           "player": "Jake Cronenworth",
           "id": "cronj001",
           "proj_hits": 0.76,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.558,
           "proj_tb": 1.17,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              4
+            ]
+          },
           "p_over_1p5_tb": 0.297,
           "proj_hr": 0.069,
           "p_hr": 0.067,
@@ -279,8 +736,28 @@
           "player": "Jose Iglesias",
           "id": "iglej001",
           "proj_hits": 0.89,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.621,
           "proj_tb": 1.2,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              4
+            ]
+          },
           "p_over_1p5_tb": 0.321,
           "proj_hr": 0.042,
           "p_hr": 0.042,
@@ -292,8 +769,28 @@
           "player": "Freddy Fermin",
           "id": "fermf002",
           "proj_hits": 0.83,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.595,
           "proj_tb": 1.16,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              4
+            ]
+          },
           "p_over_1p5_tb": 0.3,
           "proj_hr": 0.059,
           "p_hr": 0.058,
@@ -311,24 +808,73 @@
       "away_team": "BOS",
       "date": "2026-07-12",
       "park": "NYC21",
+      "confidence": {
+        "level": "Medium",
+        "score": 0.533,
+        "components": {
+          "decisiveness": 0.405,
+          "agreement": 0.921,
+          "input_quality": 0.5,
+          "stability": 1.0
+        },
+        "n_eff": 4887
+      },
+      "data_quality": {
+        "lineup_confirmed": false,
+        "roster_coverage": 1.0,
+        "n_eff": 4887,
+        "n_sims": 5000
+      },
       "moneyline": {
         "p_home": 0.5809,
         "p_away": 0.4191,
         "fair_home": -139,
         "fair_away": 139,
-        "favorite": "NYA"
+        "favorite": "NYA",
+        "p_home_ci": [
+          0.532,
+          0.581
+        ]
       },
       "score": {
         "projected_away": 3,
         "projected_home": 4,
         "exp_away_runs": 3.42,
-        "exp_home_runs": 4.25
+        "exp_home_runs": 4.25,
+        "away_range": {
+          "range_50": [
+            1,
+            5
+          ],
+          "range_90": [
+            0,
+            8
+          ]
+        },
+        "home_range": {
+          "range_50": [
+            2,
+            6
+          ],
+          "range_90": [
+            0,
+            9
+          ]
+        }
       },
       "total": {
         "exp_total": 7.67,
         "line": 7.5,
         "p_over": 0.4625,
-        "p_under": 0.5375
+        "p_under": 0.5375,
+        "range_50": [
+          5,
+          10
+        ],
+        "range_90": [
+          2,
+          15
+        ]
       },
       "run_line": {
         "home_-1.5": 0.4267,
@@ -340,28 +886,116 @@
         "p_home": 0.5923,
         "p_away": 0.4077,
         "exp_total": 4.18,
-        "line": 4.0
+        "line": 4.0,
+        "range_50": [
+          2,
+          6
+        ],
+        "range_90": [
+          0,
+          10
+        ]
       },
       "pitcher_props": [
         {
           "player": "Gerrit Cole",
           "id": "coleg001",
           "proj_k": 7.9,
+          "k_range": {
+            "range_50": [
+              6,
+              9
+            ],
+            "range_90": [
+              4,
+              12
+            ]
+          },
           "k_line": 8.0,
           "p_over_k": 0.388,
           "proj_ip": 7.07,
+          "ip_range": {
+            "range_50": [
+              7.0,
+              8.0
+            ],
+            "range_90": [
+              6.0,
+              8.0
+            ]
+          },
           "proj_hits_allowed": 5.84,
-          "proj_earned_runs": 2.44
+          "hits_allowed_range": {
+            "range_50": [
+              4,
+              7
+            ],
+            "range_90": [
+              2,
+              10
+            ]
+          },
+          "proj_earned_runs": 2.44,
+          "earned_runs_range": {
+            "range_50": [
+              1,
+              4
+            ],
+            "range_90": [
+              0,
+              6
+            ]
+          }
         },
         {
           "player": "Kutter Crawford",
           "id": "crawk001",
           "proj_k": 7.15,
+          "k_range": {
+            "range_50": [
+              6,
+              9
+            ],
+            "range_90": [
+              4,
+              11
+            ]
+          },
           "k_line": 7.0,
           "p_over_k": 0.429,
           "proj_ip": 6.85,
+          "ip_range": {
+            "range_50": [
+              6.0,
+              7.0
+            ],
+            "range_90": [
+              6.0,
+              8.0
+            ]
+          },
           "proj_hits_allowed": 5.77,
-          "proj_earned_runs": 3.33
+          "hits_allowed_range": {
+            "range_50": [
+              4,
+              7
+            ],
+            "range_90": [
+              2,
+              10
+            ]
+          },
+          "proj_earned_runs": 3.33,
+          "earned_runs_range": {
+            "range_50": [
+              2,
+              5
+            ],
+            "range_90": [
+              0,
+              8
+            ]
+          }
         }
       ],
       "home_batter_props": [
@@ -370,8 +1004,28 @@
           "player": "Trent Grisham",
           "id": "grist001",
           "proj_hits": 0.81,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.588,
           "proj_tb": 1.63,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.372,
           "proj_hr": 0.222,
           "p_hr": 0.203,
@@ -383,8 +1037,28 @@
           "player": "Ben Rice",
           "id": "riceb001",
           "proj_hits": 0.87,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.607,
           "proj_tb": 1.71,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              6
+            ]
+          },
           "p_over_1p5_tb": 0.405,
           "proj_hr": 0.197,
           "p_hr": 0.18,
@@ -396,8 +1070,28 @@
           "player": "Aaron Judge",
           "id": "judga001",
           "proj_hits": 1.02,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.675,
           "proj_tb": 2.26,
+          "tb_range": {
+            "range_50": [
+              0,
+              4
+            ],
+            "range_90": [
+              0,
+              7
+            ]
+          },
           "p_over_1p5_tb": 0.489,
           "proj_hr": 0.351,
           "p_hr": 0.307,
@@ -409,8 +1103,28 @@
           "player": "Cody Bellinger",
           "id": "bellc002",
           "proj_hits": 0.95,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.651,
           "proj_tb": 1.68,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.394,
           "proj_hr": 0.176,
           "p_hr": 0.164,
@@ -422,8 +1136,28 @@
           "player": "Giancarlo Stanton",
           "id": "stanm004",
           "proj_hits": 0.8,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.59,
           "proj_tb": 1.74,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              6
+            ]
+          },
           "p_over_1p5_tb": 0.387,
           "proj_hr": 0.263,
           "p_hr": 0.239,
@@ -435,8 +1169,28 @@
           "player": "Austin Wells",
           "id": "wella002",
           "proj_hits": 0.77,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.563,
           "proj_tb": 1.48,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.364,
           "proj_hr": 0.169,
           "p_hr": 0.158,
@@ -448,8 +1202,28 @@
           "player": "Anthony Volpe",
           "id": "volpa001",
           "proj_hits": 0.77,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.563,
           "proj_tb": 1.36,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.336,
           "proj_hr": 0.123,
           "p_hr": 0.119,
@@ -461,8 +1235,28 @@
           "player": "Ryan McMahon",
           "id": "mcmar001",
           "proj_hits": 0.72,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.539,
           "proj_tb": 1.28,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.315,
           "proj_hr": 0.126,
           "p_hr": 0.12,
@@ -474,8 +1268,28 @@
           "player": "Jos\u00e9 Caballero",
           "id": "cabaj001",
           "proj_hits": 0.68,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.513,
           "proj_tb": 1.09,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              4
+            ]
+          },
           "p_over_1p5_tb": 0.279,
           "proj_hr": 0.079,
           "p_hr": 0.077,
@@ -489,8 +1303,28 @@
           "player": "Jarren Duran",
           "id": "duraj001",
           "proj_hits": 1.01,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.668,
           "proj_tb": 1.71,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.434,
           "proj_hr": 0.117,
           "p_hr": 0.112,
@@ -502,8 +1336,28 @@
           "player": "Trevor Story",
           "id": "stort001",
           "proj_hits": 0.92,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.63,
           "proj_tb": 1.54,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.368,
           "proj_hr": 0.146,
           "p_hr": 0.134,
@@ -515,8 +1369,28 @@
           "player": "Masataka Yoshida",
           "id": "yoshm002",
           "proj_hits": 0.98,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.665,
           "proj_tb": 1.47,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.378,
           "proj_hr": 0.096,
           "p_hr": 0.094,
@@ -528,8 +1402,28 @@
           "player": "Ceddanne Rafaela",
           "id": "rafac001",
           "proj_hits": 0.89,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.628,
           "proj_tb": 1.45,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.364,
           "proj_hr": 0.11,
           "p_hr": 0.105,
@@ -541,8 +1435,28 @@
           "player": "Wilyer Abreu",
           "id": "abrew002",
           "proj_hits": 0.85,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.605,
           "proj_tb": 1.57,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.38,
           "proj_hr": 0.168,
           "p_hr": 0.156,
@@ -554,8 +1468,28 @@
           "player": "Nathaniel Lowe",
           "id": "lowen001",
           "proj_hits": 0.79,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.583,
           "proj_tb": 1.29,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.313,
           "proj_hr": 0.114,
           "p_hr": 0.109,
@@ -567,8 +1501,28 @@
           "player": "Connor Wong",
           "id": "wongc001",
           "proj_hits": 0.77,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.553,
           "proj_tb": 1.19,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              4
+            ]
+          },
           "p_over_1p5_tb": 0.298,
           "proj_hr": 0.081,
           "p_hr": 0.077,
@@ -580,8 +1534,28 @@
           "player": "David Hamilton",
           "id": "hamid002",
           "proj_hits": 0.72,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.539,
           "proj_tb": 1.16,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              4
+            ]
+          },
           "p_over_1p5_tb": 0.282,
           "proj_hr": 0.096,
           "p_hr": 0.092,
@@ -593,8 +1567,28 @@
           "player": "Nick Sogard",
           "id": "sogan001",
           "proj_hits": 0.77,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.566,
           "proj_tb": 1.13,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              4
+            ]
+          },
           "p_over_1p5_tb": 0.294,
           "proj_hr": 0.06,
           "p_hr": 0.058,
@@ -612,24 +1606,73 @@
       "away_team": "PHI",
       "date": "2026-07-12",
       "park": "ATL03",
+      "confidence": {
+        "level": "Low",
+        "score": 0.353,
+        "components": {
+          "decisiveness": 0.061,
+          "agreement": 0.845,
+          "input_quality": 0.875,
+          "stability": 1.0
+        },
+        "n_eff": 4785
+      },
+      "data_quality": {
+        "lineup_confirmed": true,
+        "roster_coverage": 0.75,
+        "n_eff": 4785,
+        "n_sims": 5000
+      },
       "moneyline": {
         "p_home": 0.4879,
         "p_away": 0.5121,
         "fair_home": 105,
         "fair_away": -105,
-        "favorite": "PHI"
+        "favorite": "PHI",
+        "p_home_ci": [
+          0.474,
+          0.532
+        ]
       },
       "score": {
         "projected_away": 5,
         "projected_home": 4,
         "exp_away_runs": 4.65,
-        "exp_home_runs": 3.98
+        "exp_home_runs": 3.98,
+        "away_range": {
+          "range_50": [
+            2,
+            7
+          ],
+          "range_90": [
+            0,
+            10
+          ]
+        },
+        "home_range": {
+          "range_50": [
+            2,
+            6
+          ],
+          "range_90": [
+            0,
+            9
+          ]
+        }
       },
       "total": {
         "exp_total": 8.63,
         "line": 8.5,
         "p_over": 0.4701,
-        "p_under": 0.5299
+        "p_under": 0.5299,
+        "range_50": [
+          6,
+          11
+        ],
+        "range_90": [
+          3,
+          16
+        ]
       },
       "run_line": {
         "home_-1.5": 0.3203,
@@ -641,28 +1684,116 @@
         "p_home": 0.4371,
         "p_away": 0.5629,
         "exp_total": 4.62,
-        "line": 4.5
+        "line": 4.5,
+        "range_50": [
+          2,
+          6
+        ],
+        "range_90": [
+          1,
+          10
+        ]
       },
       "pitcher_props": [
         {
           "player": "salet001",
           "id": "salet001",
           "proj_k": 6.59,
+          "k_range": {
+            "range_50": [
+              5,
+              8
+            ],
+            "range_90": [
+              3,
+              10
+            ]
+          },
           "k_line": 6.5,
           "p_over_k": 0.504,
           "proj_ip": 6.57,
+          "ip_range": {
+            "range_50": [
+              6.0,
+              7.0
+            ],
+            "range_90": [
+              5.0,
+              8.0
+            ]
+          },
           "proj_hits_allowed": 6.61,
-          "proj_earned_runs": 3.37
+          "hits_allowed_range": {
+            "range_50": [
+              5,
+              8
+            ],
+            "range_90": [
+              3,
+              11
+            ]
+          },
+          "proj_earned_runs": 3.37,
+          "earned_runs_range": {
+            "range_50": [
+              2,
+              5
+            ],
+            "range_90": [
+              0,
+              8
+            ]
+          }
         },
         {
           "player": "Zack Wheeler",
           "id": "wheez001",
           "proj_k": 8.1,
+          "k_range": {
+            "range_50": [
+              6,
+              10
+            ],
+            "range_90": [
+              4,
+              12
+            ]
+          },
           "k_line": 8.0,
           "p_over_k": 0.426,
           "proj_ip": 6.96,
+          "ip_range": {
+            "range_50": [
+              6.0,
+              7.0
+            ],
+            "range_90": [
+              6.0,
+              8.0
+            ]
+          },
           "proj_hits_allowed": 5.96,
-          "proj_earned_runs": 2.84
+          "hits_allowed_range": {
+            "range_50": [
+              4,
+              7
+            ],
+            "range_90": [
+              3,
+              10
+            ]
+          },
+          "proj_earned_runs": 2.84,
+          "earned_runs_range": {
+            "range_50": [
+              1,
+              4
+            ],
+            "range_90": [
+              0,
+              7
+            ]
+          }
         }
       ],
       "home_batter_props": [
@@ -671,8 +1802,28 @@
           "player": "Monte Harrison",
           "id": "harrm003",
           "proj_hits": 0.91,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.63,
           "proj_tb": 1.57,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.383,
           "proj_hr": 0.147,
           "p_hr": 0.142,
@@ -684,8 +1835,28 @@
           "player": "Ozzie Albies",
           "id": "albio001",
           "proj_hits": 0.99,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.669,
           "proj_tb": 1.66,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.404,
           "proj_hr": 0.146,
           "p_hr": 0.136,
@@ -697,8 +1868,28 @@
           "player": "riled001",
           "id": "riled001",
           "proj_hits": 0.91,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.629,
           "proj_tb": 1.52,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.376,
           "proj_hr": 0.129,
           "p_hr": 0.123,
@@ -710,8 +1901,28 @@
           "player": "Matt Olson",
           "id": "olsom001",
           "proj_hits": 0.9,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.627,
           "proj_tb": 1.7,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              6
+            ]
+          },
           "p_over_1p5_tb": 0.399,
           "proj_hr": 0.192,
           "p_hr": 0.179,
@@ -723,8 +1934,28 @@
           "player": "Marcell Ozuna",
           "id": "ozunm001",
           "proj_hits": 0.87,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.609,
           "proj_tb": 1.66,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.38,
           "proj_hr": 0.207,
           "p_hr": 0.19,
@@ -736,8 +1967,28 @@
           "player": "duvad001",
           "id": "duvad001",
           "proj_hits": 0.83,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.594,
           "proj_tb": 1.43,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.349,
           "proj_hr": 0.128,
           "p_hr": 0.122,
@@ -749,8 +2000,28 @@
           "player": "Michael Harris",
           "id": "harrm004",
           "proj_hits": 0.92,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.632,
           "proj_tb": 1.53,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.372,
           "proj_hr": 0.123,
           "p_hr": 0.119,
@@ -762,8 +2033,28 @@
           "player": "kelms001",
           "id": "kelms001",
           "proj_hits": 0.8,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.578,
           "proj_tb": 1.35,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.328,
           "proj_hr": 0.122,
           "p_hr": 0.116,
@@ -775,8 +2066,28 @@
           "player": "Orlando Arcia",
           "id": "arcio002",
           "proj_hits": 0.74,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.555,
           "proj_tb": 1.2,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              4
+            ]
+          },
           "p_over_1p5_tb": 0.299,
           "proj_hr": 0.099,
           "p_hr": 0.096,
@@ -790,8 +2101,28 @@
           "player": "Kyle Schwarber",
           "id": "schwk001",
           "proj_hits": 0.93,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.63,
           "proj_tb": 2.01,
+          "tb_range": {
+            "range_50": [
+              0,
+              4
+            ],
+            "range_90": [
+              0,
+              6
+            ]
+          },
           "p_over_1p5_tb": 0.427,
           "proj_hr": 0.305,
           "p_hr": 0.265,
@@ -803,8 +2134,28 @@
           "player": "Trea Turner",
           "id": "turnt001",
           "proj_hits": 1.21,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.743,
           "proj_tb": 1.89,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              6
+            ]
+          },
           "p_over_1p5_tb": 0.476,
           "proj_hr": 0.14,
           "p_hr": 0.131,
@@ -816,8 +2167,28 @@
           "player": "Bryce Harper",
           "id": "harpb003",
           "proj_hits": 1.08,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.706,
           "proj_tb": 1.92,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              6
+            ]
+          },
           "p_over_1p5_tb": 0.452,
           "proj_hr": 0.196,
           "p_hr": 0.179,
@@ -829,8 +2200,28 @@
           "player": "Nick Castellanos",
           "id": "castn001",
           "proj_hits": 1.06,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.692,
           "proj_tb": 1.75,
+          "tb_range": {
+            "range_50": [
+              0,
+              3
+            ],
+            "range_90": [
+              0,
+              6
+            ]
+          },
           "p_over_1p5_tb": 0.424,
           "proj_hr": 0.149,
           "p_hr": 0.143,
@@ -842,8 +2233,28 @@
           "player": "J. T. Realmuto",
           "id": "realj001",
           "proj_hits": 1.0,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.663,
           "proj_tb": 1.57,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.388,
           "proj_hr": 0.12,
           "p_hr": 0.115,
@@ -855,8 +2266,28 @@
           "player": "Alec Bohm",
           "id": "bohma001",
           "proj_hits": 1.09,
+          "hits_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.702,
           "proj_tb": 1.66,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.423,
           "proj_hr": 0.111,
           "p_hr": 0.107,
@@ -868,8 +2299,28 @@
           "player": "Brandon Marsh",
           "id": "marsb002",
           "proj_hits": 0.96,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              3
+            ]
+          },
           "p_1plus_hit": 0.651,
           "proj_tb": 1.54,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.385,
           "proj_hr": 0.114,
           "p_hr": 0.111,
@@ -881,8 +2332,28 @@
           "player": "Bryson Stott",
           "id": "stotb001",
           "proj_hits": 0.93,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.638,
           "proj_tb": 1.36,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.338,
           "proj_hr": 0.085,
           "p_hr": 0.082,
@@ -894,8 +2365,28 @@
           "player": "rojaj004",
           "id": "rojaj004",
           "proj_hits": 0.87,
+          "hits_range": {
+            "range_50": [
+              0,
+              1
+            ],
+            "range_90": [
+              0,
+              2
+            ]
+          },
           "p_1plus_hit": 0.612,
           "proj_tb": 1.43,
+          "tb_range": {
+            "range_50": [
+              0,
+              2
+            ],
+            "range_90": [
+              0,
+              5
+            ]
+          },
           "p_over_1p5_tb": 0.348,
           "proj_hr": 0.122,
           "p_hr": 0.116,
