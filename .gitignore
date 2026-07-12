@@ -11,6 +11,7 @@ venv/
 
 # Data cache (downloaded at runtime)
 data/*.csv
+data/mlb/
 
 # Trained artifacts under outputs/ (model.joblib, metrics.json,
 # predictions_2026.json, calibration.png) are small and committed so the

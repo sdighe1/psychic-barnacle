@@ -1,0 +1,89 @@
+{
+  "backtest": {
+    "split": {
+      "train": [
+        2022
+      ],
+      "val": 2023,
+      "test": 2025
+    },
+    "moneyline": {
+      "rundist": {
+        "log_loss": 0.6847,
+        "brier": 0.2458,
+        "accuracy": 0.5588,
+        "n": 2430
+      },
+      "elo_logistic": {
+        "log_loss": 0.6801,
+        "brier": 0.2437,
+        "accuracy": 0.5588,
+        "n": 2430
+      },
+      "gboost": {
+        "log_loss": 0.695,
+        "brier": 0.2505,
+        "accuracy": 0.5486,
+        "n": 2430
+      },
+      "base_rate": {
+        "log_loss": 0.6897,
+        "brier": 0.2483,
+        "accuracy": 0.5428,
+        "n": 2430
+      },
+      "ensemble": {
+        "log_loss": 0.6805,
+        "brier": 0.2438,
+        "accuracy": 0.5642,
+        "n": 2430
+      }
+    },
+    "totals": {
+      "runs_mae": 3.612,
+      "runs_rmse": 4.553,
+      "mean_pred": 9.036,
+      "mean_actual": 8.895
+    },
+    "team_runs": {
+      "team_runs_mae": 2.519,
+      "team_runs_rmse": 3.213
+    }
+  },
+  "calibration": {
+    "mean_pred": [
+      0.37786673993715264,
+      0.46303525324319894,
+      0.5472815213797197,
+      0.6370034002207752,
+      0.7105326983292365
+    ],
+    "mean_obs": [
+      0.3614457831325301,
+      0.4806924101198402,
+      0.5603864734299517,
+      0.6494252873563219,
+      1.0
+    ],
+    "counts": [
+      83,
+      751,
+      1242,
+      348,
+      6
+    ]
+  },
+  "weights": {
+    "rundist": 0.19778237888915948,
+    "elo_logistic": 0.5509553221677406,
+    "gboost": 0.25126229894310004,
+    "base_rate": 3.768449582334382e-18
+  },
+  "temperature": 1.0269802725379427,
+  "deploy_weights": {
+    "rundist": 0.0,
+    "elo_logistic": 0.0,
+    "gboost": 1.0,
+    "base_rate": 2.0816681711721685e-17
+  }
+}

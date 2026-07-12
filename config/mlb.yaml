@@ -1,0 +1,43 @@
+# MLB predictor configuration.
+# All values have code defaults; this file lets you tune without editing source.
+
+data:
+  # Chadwick Bureau Retrosheet mirror (open data on GitHub, reachable offline).
+  retro_base: "https://raw.githubusercontent.com/chadwickbureau/retrosheet/master/seasons"
+  register_base: "https://raw.githubusercontent.com/chadwickbureau/register/master/data"
+  register_shards: 16          # people-0.csv ... people-9.csv, people-a.csv ... people-f.csv
+
+  # Seasons used for game logs (Elo + backtest games). Game logs are one small
+  # file per season, so we can afford a long history. (2020 = COVID-short; the
+  # mirror is currently missing GL2024, so we skip it — 2024 events still feed
+  # 2025 projections.)
+  elo_seasons: [2016, 2017, 2018, 2019, 2021, 2022, 2023, 2025]
+
+  # Seasons whose EVENT files are parsed for per-player rate stats. Heavier
+  # (30 files/season), so keep this to the recent seasons that drive projections.
+  rate_seasons: [2021, 2022, 2023, 2024, 2025]
+
+projections:
+  # Marcel-style weights for the most-recent-3 completed seasons (newest first).
+  season_weights: [5.0, 4.0, 3.0]
+  # PA of league-average performance mixed in (regression to the mean).
+  bat_regress_pa: 200.0
+  pit_regress_bf: 300.0
+  # Age curve peak; small linear penalty away from peak (per year).
+  age_peak: 27.0
+  age_adj_per_year: 0.003
+
+simulation:
+  n_sims: 5000
+  # Pull the starter after this many times through the order OR pitch-count proxy.
+  starter_max_tto: 3.0
+  starter_max_batters: 27
+  # Regular-season extra innings start with a runner on 2nd (since 2020).
+  extra_innings_ghost_runner: true
+  random_seed: 0
+
+live:
+  statsapi_base: "https://statsapi.mlb.com/api/v1"
+  # Hydrations for the schedule endpoint (probable pitchers + posted lineups).
+  schedule_hydrate: "probablePitcher(note),lineups,team,linescore"
+  timeout_seconds: 20
