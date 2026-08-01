@@ -34,7 +34,8 @@ from mlbpredictor.models.baselines import EloLogistic, HomeBaseRate  # noqa: E40
 from mlbpredictor.models.ensemble import EnsembleModel               # noqa: E402
 from mlbpredictor.models.gboost import GBoostModel                   # noqa: E402
 from mlbpredictor.models.rundist import RunDistModel                 # noqa: E402
-from mlbpredictor.paths import CALIBRATION_PLOT_PATH, METRICS_PATH   # noqa: E402
+from mlbpredictor.paths import (BACKTEST_PREDICTIONS_PATH,           # noqa: E402
+                                CALIBRATION_PLOT_PATH, METRICS_PATH)
 from mlbpredictor.predict import Predictor                           # noqa: E402
 from mlbpredictor.viz import save_calibration_plot                   # noqa: E402
 
@@ -99,6 +100,16 @@ def main() -> None:
         rows[name] = backtest.evaluate_moneyline(_member_p_home(name, model, test), y)
     ens_p = ens.predict_p_home(test)
     rows["ensemble"] = backtest.evaluate_moneyline(ens_p, y)
+
+    # Persist the out-of-sample test-season predictions for the CLV backtest to join
+    # against (scripts/backtest_clv.py).
+    pd.DataFrame({
+        "date": test["date"].dt.strftime("%Y-%m-%d").to_numpy(),
+        "home_team": test["home_team"].to_numpy(),
+        "away_team": test["away_team"].to_numpy(),
+        "model_p_home": ens_p,
+        "actual_home_win": y,
+    }).to_csv(BACKTEST_PREDICTIONS_PATH, index=False)
     print("\nMoneyline (lower log-loss/Brier better; home base rate = no skill):")
     print(_ml_table(rows))
 

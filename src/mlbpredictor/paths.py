@@ -26,6 +26,8 @@ MODEL_PATH = OUTPUTS_DIR / "mlb_model.joblib"
 METRICS_PATH = OUTPUTS_DIR / "mlb_metrics.json"
 CALIBRATION_PLOT_PATH = OUTPUTS_DIR / "mlb_calibration.png"
 PREDICTIONS_LATEST_PATH = OUTPUTS_DIR / "predictions_latest.json"
+BACKTEST_PREDICTIONS_PATH = OUTPUTS_DIR / "backtest_predictions.csv"
+CLV_REPORT_PATH = OUTPUTS_DIR / "clv_report.json"
 
 
 def predictions_path(date_str: str) -> Path:

@@ -1,0 +1,28 @@
+{
+  "n_games": 37,
+  "market": {
+    "avg_hold": 0.025,
+    "log_loss": 0.6896,
+    "brier": 0.2484
+  },
+  "model": {
+    "log_loss": 0.6992,
+    "brier": 0.253,
+    "beats_market_logloss": false
+  },
+  "favorite_agreement": 0.8649,
+  "betting": {
+    "edge_threshold": 0.06,
+    "n_bets": 1,
+    "n_home_bets": 1,
+    "n_away_bets": 0,
+    "hit_rate": 0.0,
+    "roi": -1.0,
+    "profit_units": -1.0,
+    "avg_model_edge": 0.0751
+  },
+  "clv": {
+    "beat_close_rate": 1.0,
+    "avg_clv_pct": 3.008
+  }
+}

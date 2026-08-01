@@ -97,10 +97,40 @@ python scripts/train_mlb.py            # backtest + save outputs/mlb_model.jobli
 python scripts/predict_today.py --slate config/slate.example.yaml
 
 streamlit run mlb_app.py               # dashboard: slate, game explorer, model card
+
+# Test the model against the closing line (needs a historical odds CSV — see below):
+python scripts/backtest_clv.py --odds config/odds.example.csv
 ```
 
 The trained artifacts under `outputs/` are committed, so the dashboard works right after
 cloning; the scripts are only needed to refresh.
+
+## Testing against the closing line (CLV)
+
+The sharpest test of a betting model is whether it beats the market's **closing line**.
+`scripts/backtest_clv.py` joins the model's out-of-sample test-season predictions
+(`outputs/backtest_predictions.csv`, written by the trainer) to a historical odds file and
+reports:
+
+- **sharpness** — model log-loss vs. the *no-vig* closing line's (is the model as sharp as the market?);
+- **favorite agreement** with the close;
+- **+EV ROI** — hit rate and return from betting the model's edges at the closing price;
+- **beat-the-close CLV** — when opening lines are supplied, how often the line moved toward the
+  model's side (positive CLV predicts long-term profit even before outcomes are known).
+
+Historical odds are **not reachable from a locked-down sandbox** (odds sites are blocked), so you
+supply a CSV with this header (teams as abbreviations or Retrosheet codes; American odds; date
+ISO or `YYYYMMDD`):
+
+```
+date,home_team,away_team,close_home_ml,close_away_ml[,open_home_ml,open_away_ml]
+2025-04-04,LAD,SD,-145,+122,-130,+114
+```
+
+Get it from a SportsbookReviewsOnline season export, The Odds API (paid historical endpoint), or a
+scrape. `config/odds.example.csv` is a tiny **synthetic** sample that only demonstrates the
+pipeline — real CLV needs real closing lines, and the honest expectation is that most public
+models do *not* out-sharpen the close.
 
 ## Enabling live auto-fetch (probable pitchers & lineups)
 
