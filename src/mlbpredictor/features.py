@@ -16,6 +16,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from . import statcast
 from .offense import OffenseModel, woba
 from .park import ParkFactors
 from .projections import ProjectionSystem
@@ -71,8 +72,10 @@ class GameFeatureBuilder:
 
     def _build_season_models(self, batting, pitching, bullpen, lg_rpg_by_season, seasons):
         for Y in seasons:
+            lb, lp = statcast.multipliers_for_season(int(Y) - 1)   # {} unless Savant enabled
             try:
-                ps = ProjectionSystem().fit(batting, pitching, bullpen, ref_season=int(Y))
+                ps = ProjectionSystem().fit(batting, pitching, bullpen, ref_season=int(Y),
+                                            luck_bat=lb, luck_pit=lp)
             except ValueError:
                 continue
             self.proj_by_season[int(Y)] = ps
@@ -113,9 +116,11 @@ class GameFeatureBuilder:
 
         # Deployed (as-of next season) projection for live inference.
         self.deploy_season = int(max(seasons)) + 1
+        lb, lp = statcast.multipliers_for_season(self.deploy_season - 1)
         try:
             self.deploy_proj = ProjectionSystem().fit(batting, pitching, bullpen,
-                                                      ref_season=self.deploy_season)
+                                                      ref_season=self.deploy_season,
+                                                      luck_bat=lb, luck_pit=lp)
         except ValueError:
             self.deploy_proj = self.proj_by_season[max(self.proj_by_season)]
         recent_rpg = float(np.mean([lg_rpg[s] for s in seasons[-2:]]))

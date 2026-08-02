@@ -61,6 +61,14 @@ DEFAULTS: dict = {
         "schedule_hydrate": "probablePitcher(note),lineups,team,linescore",
         "timeout_seconds": 20,
     },
+    "statcast": {
+        # xwOBA "de-luck" of projections. Needs baseballsavant.mlb.com whitelisted, so
+        # it is OFF by default and fails soft (projections untouched) when unavailable.
+        "enabled": False,
+        "base_url": "https://baseballsavant.mlb.com/leaderboard/expected_statistics",
+        "regress_pa": 200.0,   # PA of regression of the luck delta toward zero
+        "clip": 0.15,          # cap the per-player wOBA luck correction at ±15%
+    },
 }
 
 

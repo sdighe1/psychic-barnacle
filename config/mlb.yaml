@@ -71,3 +71,14 @@ live:
   # Hydrations for the schedule endpoint (probable pitchers + posted lineups).
   schedule_hydrate: "probablePitcher(note),lineups,team,linescore"
   timeout_seconds: 20
+
+statcast:
+  # "De-luck" projections with Baseball Savant expected stats (xwOBA): the regressed
+  # gap between actual and expected wOBA nudges each player's projection toward their
+  # contact quality, stripping BABIP/HR luck. Requires baseballsavant.mlb.com to be
+  # whitelisted in the network policy; leave false until then (it fails soft — when
+  # off or unreachable, projections are unchanged). Flip to true once the host is allowed.
+  enabled: false
+  base_url: "https://baseballsavant.mlb.com/leaderboard/expected_statistics"
+  regress_pa: 200.0     # PA of regression of the luck delta toward zero (noisy at low PA)
+  clip: 0.15            # cap the per-player wOBA luck correction at +/-15%

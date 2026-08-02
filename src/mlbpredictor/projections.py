@@ -20,6 +20,7 @@ import pandas as pd
 from .config import load_config
 from .ids import birth_year_for
 from .retrosheet import PA_OUTCOMES
+from .statcast import apply_luck
 
 _IDX = {o: i for i, o in enumerate(PA_OUTCOMES)}
 _OUT = _IDX["OUT"]
@@ -157,8 +158,14 @@ class ProjectionSystem:
                 _platoon_project(overall, factor_R, oR, paR, reg))
 
     def fit(self, batting: pd.DataFrame, pitching: pd.DataFrame, bullpen: pd.DataFrame,
-            ref_season: int) -> "ProjectionSystem":
-        """Fit projections *as of* ``ref_season`` using only seasons ``< ref_season``."""
+            ref_season: int, luck_bat: dict | None = None,
+            luck_pit: dict | None = None) -> "ProjectionSystem":
+        """Fit projections *as of* ``ref_season`` using only seasons ``< ref_season``.
+
+        ``luck_bat``/``luck_pit`` (optional) are Statcast wOBA multipliers keyed by
+        Retrosheet id; when supplied, each overall rate is de-lucked before splits are
+        derived. Empty/None leaves projections exactly as before.
+        """
         self.ref_season = int(ref_season)
         bat = batting[batting["season"] < ref_season]
         pit = pitching[pitching["season"] < ref_season]
@@ -179,12 +186,16 @@ class ProjectionSystem:
         for rid, sub in bat.groupby("retro_id"):
             rate, _ = _weighted_regressed(sub, self.weights, self.league_bat, self.bat_regress_pa)
             rate = _age_adjust(rate, rid, self.ref_season, self.age_peak, self.age_per_year)
+            if luck_bat:
+                rate = apply_luck(rate, luck_bat.get(rid))
             self.bat_[rid] = rate
             self._bat_pa[rid] = float(sub["PA"].sum())
             self.bat_vL_[rid], self.bat_vR_[rid] = self._fit_splits(
                 sub, rate, pf_bat_L, pf_bat_R, _BAT_SPLIT_REG)
         for rid, sub in pit.groupby("retro_id"):
             rate, _ = _weighted_regressed(sub, self.weights, self.league_pit, self.pit_regress_bf)
+            if luck_pit:
+                rate = apply_luck(rate, luck_pit.get(rid))
             self.pit_[rid] = rate
             self._pit_pa[rid] = float(sub["PA"].sum())
             self.pit_vL_[rid], self.pit_vR_[rid] = self._fit_splits(
