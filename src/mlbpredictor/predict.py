@@ -71,10 +71,11 @@ class Predictor:
         home_sp_v, away_sp_v = ps.pitcher(home_sp), ps.pitcher(away_sp)
         home_bp, away_bp = ps.bullpen(home_team), ps.bullpen(away_team)
         smax = int(cfg["starter_max_batters"])
+        tto = tuple(cfg.get("tto_factors", (1.0,)))
 
         # away bats vs home pitching; home bats vs away pitching
-        away_pack = TeamPack(*precompute_matchups(away_vecs, home_sp_v, home_bp, lg, pf), smax)
-        home_pack = TeamPack(*precompute_matchups(home_vecs, away_sp_v, away_bp, lg, pf), smax)
+        away_pack = TeamPack(*precompute_matchups(away_vecs, home_sp_v, home_bp, lg, pf, tto_factors=tto), smax)
+        home_pack = TeamPack(*precompute_matchups(home_vecs, away_sp_v, away_bp, lg, pf, tto_factors=tto), smax)
         res = simulate_game(away_pack, home_pack, n_sims=n_sims,
                             ghost_runner=bool(cfg["extra_innings_ghost_runner"]), seed=seed)
 

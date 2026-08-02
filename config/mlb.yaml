@@ -46,6 +46,9 @@ simulation:
   # Pull the starter after this many times through the order OR pitch-count proxy.
   starter_max_tto: 3.0
   starter_max_batters: 27
+  # Times-through-the-order penalty: offense multiplier vs the starter the 1st/2nd/3rd
+  # time through the lineup (centered so a ~6-inning start ≈ the projection).
+  tto_factors: [0.97, 1.00, 1.05]
   # Regular-season extra innings start with a runner on 2nd (since 2020).
   extra_innings_ghost_runner: true
   random_seed: 0

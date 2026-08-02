@@ -40,6 +40,7 @@ DEFAULTS: dict = {
         "n_sims": 5000,
         "starter_max_tto": 3.0,
         "starter_max_batters": 27,
+        "tto_factors": [0.97, 1.00, 1.05],
         "extra_innings_ghost_runner": True,
         "random_seed": 0,
     },

@@ -50,6 +50,22 @@ def test_better_lineup_scores_more_and_wins():
     assert res.p_home_win() < 0.4                          # away (strong) favored
 
 
+def test_tto_penalty_increases_offense_late():
+    import numpy as np
+    vs_sp, _ = precompute_matchups([LEAGUE] * 9, LEAGUE, LEAGUE, LEAGUE, 1.0,
+                                   tto_factors=(0.9, 1.0, 1.15))
+    pmf1 = np.diff(vs_sp[0][0], prepend=0)      # 1st time through
+    pmf3 = np.diff(vs_sp[0][2], prepend=0)      # 3rd time through
+    assert pmf3[7] < pmf1[7]                     # fewer OUTs the 3rd time
+    assert pmf3[3] > pmf1[3]                     # more HR the 3rd time
+    # centered factors keep the league run environment intact
+    sp, bp = precompute_matchups([LEAGUE] * 9, LEAGUE, LEAGUE, LEAGUE, 1.0,
+                                 tto_factors=(0.97, 1.0, 1.05))
+    res = simulate_game(TeamPack(sp, bp, 27), TeamPack(sp, bp, 27), n_sims=3000, seed=2)
+    a, h = res.exp_runs()
+    assert 4.0 <= (a + h) / 2 <= 5.1
+
+
 def test_ace_records_more_strikeouts():
     ace = LEAGUE.copy(); ace[6] *= 1.6; ace[:4] *= 0.7; ace /= ace.sum()
     ace_team = _pack([LEAGUE] * 9, ace, LEAGUE)

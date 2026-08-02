@@ -18,7 +18,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .matchup import matchup_probs
+from .matchup import matchup_probs, scale_offense
 from .retrosheet import PA_OUTCOMES
 
 # Outcome indices.
@@ -36,11 +36,17 @@ P_OUT_ADVANCE = 0.26      # a "productive out" nudges each runner up one base
 
 
 def precompute_matchups(lineup_vecs, starter_vec, bullpen_vec, league_vec,
-                        park_factor: float = 1.0):
-    """Return ``(vs_starter[9], vs_bullpen[9])`` cumulative outcome distributions."""
+                        park_factor: float = 1.0, tto_factors=(1.0,)):
+    """Return ``(vs_starter[9], vs_bullpen[9])`` cumulative outcome distributions.
+
+    ``vs_starter[i]`` is a list of cumulative dists — one per *time through the order*
+    (``tto_factors`` scales the batter's offense as the starter tires). ``vs_bullpen[i]``
+    is a single cumulative dist.
+    """
     vs_sp, vs_bp = [], []
     for b in lineup_vecs:
-        vs_sp.append(np.cumsum(matchup_probs(b, starter_vec, league_vec, park_factor)))
+        base_sp = matchup_probs(b, starter_vec, league_vec, park_factor)
+        vs_sp.append([np.cumsum(scale_offense(base_sp, f)) for f in tto_factors])
         vs_bp.append(np.cumsum(matchup_probs(b, bullpen_vec, league_vec, park_factor)))
     return vs_sp, vs_bp
 
@@ -48,7 +54,7 @@ def precompute_matchups(lineup_vecs, starter_vec, bullpen_vec, league_vec,
 @dataclass
 class TeamPack:
     """One team's batting inputs against the opponent's pitching."""
-    vs_sp: list          # 9 cumulative dists vs opposing starter
+    vs_sp: list          # 9 lists of per-time-through-order cumulative dists vs the starter
     vs_bp: list          # 9 cumulative dists vs opposing bullpen
     starter_max_batters: int = 27
 
@@ -84,11 +90,17 @@ def _play_half(pack: TeamPack, order_idx: int, bf_before: int, box: _BoxScore,
         b2 = (order_idx - 1) % 9
     us = rng.random(128)
     up = 0
+    faced = bf_before                           # starter's cumulative batters faced
     while outs < 3:
         if up >= len(us) - 5:
             us = rng.random(128); up = 0
-        cum = pack.vs_bp[order_idx] if use_bp else pack.vs_sp[order_idx]
+        if use_bp:
+            cum = pack.vs_bp[order_idx]
+        else:                                   # pick the time-through-order tier
+            tiers = pack.vs_sp[order_idx]
+            cum = tiers[min(faced // 9, len(tiers) - 1)]
         o = _sample(cum, us[up]); up += 1
+        faced += 1
         box.bat[order_idx, o] += 1
         if o == I_SO:
             if use_bp:
