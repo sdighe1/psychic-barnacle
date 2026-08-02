@@ -1,0 +1,123 @@
+"""Backtest metrics for the MLB predictor.
+
+Moneyline is a two-class problem (home/away), so we report **log-loss**, **Brier**
+and **accuracy** plus a reliability curve for calibration. For the score we report
+**MAE/RMSE on total runs** and on each side's runs, and the run-line / totals
+hit behaviour. Lower log-loss / Brier / MAE is better; a home-field base rate is
+the no-skill floor. (There is no draw class — MLB games always resolve.)
+"""
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+
+_EPS = 1e-12
+
+
+def log_loss(p_home: np.ndarray, y: np.ndarray) -> float:
+    p = np.clip(p_home, _EPS, 1 - _EPS)
+    return float(-np.mean(y * np.log(p) + (1 - y) * np.log(1 - p)))
+
+
+def brier(p_home: np.ndarray, y: np.ndarray) -> float:
+    return float(np.mean((p_home - y) ** 2))
+
+
+def accuracy(p_home: np.ndarray, y: np.ndarray) -> float:
+    return float(np.mean((p_home >= 0.5).astype(int) == y))
+
+
+def evaluate_moneyline(p_home: np.ndarray, y: np.ndarray) -> dict:
+    p_home = np.asarray(p_home, float)
+    y = np.asarray(y, float)
+    return {
+        "log_loss": round(log_loss(p_home, y), 4),
+        "brier": round(brier(p_home, y), 4),
+        "accuracy": round(accuracy(p_home, y), 4),
+        "n": int(len(y)),
+    }
+
+
+def evaluate_totals(exp_total: np.ndarray, actual_total: np.ndarray) -> dict:
+    e = np.asarray(exp_total, float)
+    a = np.asarray(actual_total, float)
+    return {
+        "runs_mae": round(float(np.mean(np.abs(e - a))), 3),
+        "runs_rmse": round(float(np.sqrt(np.mean((e - a) ** 2))), 3),
+        "mean_pred": round(float(e.mean()), 3),
+        "mean_actual": round(float(a.mean()), 3),
+    }
+
+
+def evaluate_side_runs(exp_home, home_actual, exp_away, away_actual) -> dict:
+    eh, ah = np.asarray(exp_home, float), np.asarray(home_actual, float)
+    ea, aa = np.asarray(exp_away, float), np.asarray(away_actual, float)
+    err = np.concatenate([eh - ah, ea - aa])
+    return {
+        "team_runs_mae": round(float(np.mean(np.abs(err))), 3),
+        "team_runs_rmse": round(float(np.sqrt(np.mean(err ** 2))), 3),
+    }
+
+
+def interval_coverage(lo: np.ndarray, hi: np.ndarray, actual: np.ndarray) -> float:
+    """Fraction of ``actual`` values that fall within ``[lo, hi]`` (inclusive)."""
+    a = np.asarray(actual, float)
+    return float(np.mean((a >= np.asarray(lo)) & (a <= np.asarray(hi))))
+
+
+def evaluate_total_intervals(rundist, exp_home, exp_away, actual_total,
+                             levels=(0.5, 0.9)) -> dict:
+    """Empirical coverage of the run model's total-runs credible intervals.
+
+    A well-calibrated 50% (90%) interval should contain the actual total ~50% (90%)
+    of the time. Returns ``{'coverage_50': .., 'coverage_90': ..}``.
+    """
+    out = {}
+    for lvl in levels:
+        lo_q, hi_q = (1 - lvl) / 2, 1 - (1 - lvl) / 2
+        q = rundist.total_quantiles(exp_home, exp_away, [lo_q, hi_q])
+        out[f"coverage_{int(round(lvl * 100))}"] = round(
+            interval_coverage(q[:, 0], q[:, 1], actual_total), 3)
+    return out
+
+
+def _confidence_score(p_home: np.ndarray, member_spread: np.ndarray) -> np.ndarray:
+    """Game-varying core of the live confidence: decisiveness + component agreement.
+
+    (Input-quality and simulation-stability are held fixed across a backtest — real
+    lineups, no reweighting variance — so only these two terms vary here.)
+    """
+    dec = np.minimum(np.abs(p_home - 0.5) / 0.20, 1.0)
+    agr = 1.0 - np.minimum(member_spread / 0.15, 1.0)
+    return 0.70 * dec + 0.30 * agr
+
+
+def accuracy_by_confidence(p_home: np.ndarray, member_spread: np.ndarray,
+                           y: np.ndarray) -> dict:
+    """Moneyline accuracy bucketed by confidence band (High > Medium > Low expected)."""
+    score = _confidence_score(np.asarray(p_home, float), np.asarray(member_spread, float))
+    band = np.where(score >= 0.60, "High", np.where(score >= 0.35, "Medium", "Low"))
+    pred = (np.asarray(p_home) >= 0.5).astype(int)
+    y = np.asarray(y)
+    out = {}
+    for b in ("High", "Medium", "Low"):
+        m = band == b
+        if m.sum() > 0:
+            out[b] = {"accuracy": round(float(np.mean(pred[m] == y[m])), 4), "n": int(m.sum())}
+    return out
+
+
+def reliability(p_home: np.ndarray, y: np.ndarray, n_bins: int = 10) -> dict:
+    """Reliability curve of the home-win probability (for a calibration plot)."""
+    p = np.asarray(p_home, float)
+    y = np.asarray(y, float)
+    bins = np.linspace(0, 1, n_bins + 1)
+    which = np.clip(np.digitize(p, bins) - 1, 0, n_bins - 1)
+    mean_pred, mean_obs, counts = [], [], []
+    for b in range(n_bins):
+        m = which == b
+        if m.sum() > 0:
+            mean_pred.append(float(p[m].mean()))
+            mean_obs.append(float(y[m].mean()))
+            counts.append(int(m.sum()))
+    return {"mean_pred": mean_pred, "mean_obs": mean_obs, "counts": counts}

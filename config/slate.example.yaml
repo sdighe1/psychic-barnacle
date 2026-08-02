@@ -1,0 +1,30 @@
+# Manual slate — used when the MLB Stats API is unreachable (blocked by the
+# environment network policy). Fill this in each morning once probable pitchers
+# are announced, then run:  python scripts/predict_today.py --slate config/slate.example.yaml
+#
+# Teams accept abbreviations (LAD, NYY, SF, ...) or Retrosheet codes (LAN, NYA, SFN).
+# Pitchers/batters accept a Retrosheet id (e.g. kersc001) OR a full name
+# (e.g. "Clayton Kershaw"). Lineups are OPTIONAL — if omitted, the model uses each
+# team's most recent starting order. Park is optional (defaults to the home park).
+
+games:
+  # Minimal: just teams + probable starters (lineups auto-filled from recent games).
+  - home: LAD
+    away: SD
+    home_sp: kersc001         # Clayton Kershaw
+    away_sp: darvy001         # Yu Darvish
+
+  - home: NYY
+    away: BOS
+    home_sp: "Gerrit Cole"    # names resolve via the Chadwick register
+    away_sp: crawk001
+
+  # Full form: explicit lineup (9 Retrosheet ids, batting order 1-9).
+  - home: ATL
+    away: PHI
+    home_sp: salet001
+    away_sp: wheez001
+    home_lineup: [harrm003, albio001, riled001, olsom001, ozunm001,
+                  duvad001, harrm004, kelms001, arcio002]
+    away_lineup: [schwk001, turnt001, harpb003, castn001, realj001,
+                  bohma001, marsb002, stotb001, rojaj004]

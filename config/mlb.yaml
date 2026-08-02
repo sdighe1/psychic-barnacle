@@ -1,0 +1,85 @@
+# MLB predictor configuration.
+# All values have code defaults; this file lets you tune without editing source.
+
+data:
+  # Chadwick Bureau Retrosheet mirror (open data on GitHub, reachable offline).
+  retro_base: "https://raw.githubusercontent.com/chadwickbureau/retrosheet/master/seasons"
+  register_base: "https://raw.githubusercontent.com/chadwickbureau/register/master/data"
+  register_shards: 16          # people-0.csv ... people-9.csv, people-a.csv ... people-f.csv
+
+  # Seasons used for game logs (Elo + backtest games). Game logs are one small
+  # file per season, so we can afford a long history. (2020 = COVID-short; the
+  # mirror is currently missing GL2024, so we skip it — 2024 events still feed
+  # 2025 projections.)
+  elo_seasons: [2016, 2017, 2018, 2019, 2021, 2022, 2023, 2025]
+
+  # Seasons whose EVENT files are parsed for per-player rate stats. Heavier
+  # (30 files/season), so keep this to the recent seasons that drive projections.
+  rate_seasons: [2021, 2022, 2023, 2024, 2025]
+
+projections:
+  # Marcel-style weights for the most-recent-3 completed seasons (newest first).
+  season_weights: [5.0, 4.0, 3.0]
+  # PA of league-average performance mixed in (regression to the mean).
+  bat_regress_pa: 200.0
+  pit_regress_bf: 300.0
+  # Age curve peak; small linear penalty away from peak (per year).
+  age_peak: 27.0
+  age_adj_per_year: 0.003
+
+intervals:
+  # Central credible-interval levels reported for every count output (0.5 = IQR).
+  levels: [0.5, 0.9]
+
+freshen:
+  # Update the deployed model with current-season form (live, via statsapi) before
+  # predicting, since the committed model is trained only through the last complete
+  # Retrosheet season. Weights are how much the multi-year projection is trusted (as a
+  # prior) vs. current-season data: higher = slower to move off the base projection.
+  enabled: true
+  elo_revert: 0.20        # offseason regression toward the mean before applying this season
+  w_base_pa: 400          # batter prior strength (in PA)
+  w_base_bf: 500          # pitcher prior strength (in batters faced)
+
+simulation:
+  n_sims: 5000
+  # Pull the starter after this many times through the order OR pitch-count proxy.
+  starter_max_tto: 3.0
+  starter_max_batters: 27
+  # Times-through-the-order penalty: offense multiplier vs the starter the 1st/2nd/3rd
+  # time through the lineup (centered so a ~6-inning start ≈ the projection).
+  tto_factors: [0.97, 1.00, 1.05]
+  # Regular-season extra innings start with a runner on 2nd (since 2020).
+  extra_innings_ghost_runner: true
+  random_seed: 0
+
+bullpen:
+  # Build each team's bullpen from the specific relievers available today (statsapi
+  # active roster), quality-weighted and fatigue-adjusted, instead of the season
+  # aggregate. Falls back to the season aggregate offline or on any fetch failure.
+  use_live_relievers: true
+  quality_temp: 0.06        # softmax temperature over -wOBA-against (lower = favor the best arms)
+  min_relievers: 3          # need at least this many known relievers, else the season aggregate
+  lookback_days: 2          # recent days scanned for fatigue
+  b2b_penalty: 0.15         # pitched both of the last 2 days -> likely unavailable today
+  day1_penalty: 0.60        # pitched yesterday only
+  day2_penalty: 0.90        # pitched 2 days ago only
+  starter_gs_frac: 0.5      # season gamesStarted/games >= this -> a starter (excluded from the pen)
+
+live:
+  statsapi_base: "https://statsapi.mlb.com/api/v1"
+  # Hydrations for the schedule endpoint (probable pitchers + posted lineups).
+  schedule_hydrate: "probablePitcher(note),lineups,team,linescore"
+  timeout_seconds: 20
+
+statcast:
+  # "De-luck" projections with Baseball Savant expected stats (xwOBA): the regressed
+  # gap between actual and expected wOBA nudges each player's projection toward their
+  # contact quality, stripping BABIP/HR luck. Requires baseballsavant.mlb.com to be
+  # whitelisted in the network policy. Fails soft (projections unchanged) when the host
+  # is unreachable, so it is safe to leave enabled everywhere.
+  enabled: true
+  base_url: "https://baseballsavant.mlb.com/leaderboard/expected_statistics"
+  min_batted_balls: 50  # Savant 'min' param; 50 ~= every player with a usable xwOBA (vs 'q' = qualified)
+  regress_pa: 200.0     # PA of regression of the luck delta toward zero (noisy at low PA)
+  clip: 0.15            # cap the per-player wOBA luck correction at +/-15%

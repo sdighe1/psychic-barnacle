@@ -1,3 +1,8 @@
+> **This repo contains two independent sports-prediction models:**
+> the **World Cup 2026 match predictor** (below) and an **⚾ MLB game predictor**
+> for daily betting markets (outcome, score, statistics & player props) —
+> see **[README_MLB.md](README_MLB.md)** (`streamlit run mlb_app.py`).
+
 # 🏆 World Cup 2026 Match Predictor
 
 A football-specific machine-learning model that predicts international match
