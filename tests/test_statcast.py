@@ -43,8 +43,9 @@ def test_luck_multipliers_regress_and_clip():
     assert m["capped"] == 1.15
 
 
-def test_multipliers_disabled_by_default(monkeypatch):
-    # Default config has statcast.enabled = False -> no fetch, empty maps.
+def test_multipliers_disabled_returns_empty(monkeypatch):
+    # When disabled, no fetch is attempted and the maps are empty (host-independent).
+    monkeypatch.setattr(sc, "_sc_cfg", lambda: {"enabled": False})
     called = {"n": 0}
     monkeypatch.setattr(sc, "load_expected", lambda *a, **k: called.__setitem__("n", called["n"] + 1))
     assert multipliers_for_season(2024) == ({}, {})

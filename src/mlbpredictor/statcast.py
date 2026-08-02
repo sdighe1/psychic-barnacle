@@ -36,9 +36,11 @@ def _sc_cfg() -> dict:
 
 
 def statcast_url(kind: str, year: int) -> str:
-    base = _sc_cfg().get("base_url",
-                         "https://baseballsavant.mlb.com/leaderboard/expected_statistics")
-    return f"{base}?type={kind}&year={year}&position=&team=&min=q&csv=true"
+    cfg = _sc_cfg()
+    base = cfg.get("base_url",
+                   "https://baseballsavant.mlb.com/leaderboard/expected_statistics")
+    min_bbe = cfg.get("min_batted_balls", 50)   # 'q' = qualified only; a number widens coverage
+    return f"{base}?type={kind}&year={year}&position=&team=&min={min_bbe}&csv=true"
 
 
 def _pick(cols: list[str], *cands: str) -> str | None:

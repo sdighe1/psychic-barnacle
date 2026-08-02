@@ -76,9 +76,10 @@ statcast:
   # "De-luck" projections with Baseball Savant expected stats (xwOBA): the regressed
   # gap between actual and expected wOBA nudges each player's projection toward their
   # contact quality, stripping BABIP/HR luck. Requires baseballsavant.mlb.com to be
-  # whitelisted in the network policy; leave false until then (it fails soft — when
-  # off or unreachable, projections are unchanged). Flip to true once the host is allowed.
-  enabled: false
+  # whitelisted in the network policy. Fails soft (projections unchanged) when the host
+  # is unreachable, so it is safe to leave enabled everywhere.
+  enabled: true
   base_url: "https://baseballsavant.mlb.com/leaderboard/expected_statistics"
+  min_batted_balls: 50  # Savant 'min' param; 50 ~= every player with a usable xwOBA (vs 'q' = qualified)
   regress_pa: 200.0     # PA of regression of the luck delta toward zero (noisy at low PA)
   clip: 0.15            # cap the per-player wOBA luck correction at +/-15%
