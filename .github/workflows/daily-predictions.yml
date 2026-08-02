@@ -1,0 +1,61 @@
+name: Daily MLB predictions
+
+# Runs each morning, auto-fetches today's slate (probable pitchers + lineups) from
+# the MLB Stats API — GitHub's runners have open internet, so this works with no
+# network-policy whitelist — and commits the predictions back to the repo (which
+# updates outputs/predictions_latest.json for the dashboard).
+#
+# NOTE: GitHub only runs `schedule` workflows from the repository's DEFAULT branch,
+# so this activates once this branch is merged. Use the "Run workflow" button
+# (workflow_dispatch) on the Actions tab to test it on demand after merging.
+
+on:
+  schedule:
+    - cron: "0 15 * * *"      # 15:00 UTC ≈ 11:00 ET (adjust to taste)
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Slate date (YYYY-MM-DD); blank = today"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-mlb-predictions
+  cancel-in-progress: false
+
+jobs:
+  predict:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Predict today's slate (auto-fetch from statsapi)
+        run: |
+          if [ -n "${{ github.event.inputs.date }}" ]; then
+            python scripts/predict_today.py --date "${{ github.event.inputs.date }}"
+          else
+            python scripts/predict_today.py
+          fi
+
+      - name: Commit predictions
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add outputs/predictions_*.json
+          if git diff --staged --quiet; then
+            echo "No prediction changes to commit."
+          else
+            git commit -m "Daily MLB predictions $(date -u +%Y-%m-%d)"
+            git push
+          fi

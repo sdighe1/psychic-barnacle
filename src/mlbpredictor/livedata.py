@@ -214,12 +214,17 @@ def get_slate(date: str, slate_path=None, predictor=None, prefer_live: bool = Tr
     Missing lineups/starters/park are filled from the model's stored defaults.
     """
     games: list[GameInput] = []
+    live_used = False
     if prefer_live and statsapi_reachable():
+        live_used = True
         try:
             games = fetch_statsapi_slate(date)
         except requests.RequestException:
-            games = []
-    if not games and slate_path:
+            live_used = False            # unreachable mid-request → allow file fallback
+    # Only fall back to the manual file when the live feed was NOT used successfully.
+    # (If statsapi was reached and simply had no games — an off day — return empty
+    # rather than predicting stale games from the example slate.)
+    if not games and slate_path and not live_used:
         games = load_slate_file(slate_path)
     if predictor is not None:
         games = [fill_defaults(g, predictor) for g in games]

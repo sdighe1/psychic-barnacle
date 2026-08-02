@@ -48,9 +48,12 @@ def main() -> None:
     games = get_slate(args.date, slate_path=slate_path, predictor=predictor,
                       prefer_live=not args.no_live)
     if not games:
-        raise SystemExit(
-            "No games found. Enable statsapi.mlb.com in the network policy, or fill in "
-            f"a slate file (see {CONFIG_DIR / 'slate.example.yaml'}).")
+        # An empty slate (off day / offseason, or nothing fetched) is not an error —
+        # exit cleanly so scheduled runs don't flag a failure.
+        print("No games found for this date. If this is unexpected, enable "
+              f"statsapi.mlb.com in the network policy or fill in a slate file "
+              f"(see {CONFIG_DIR / 'slate.example.yaml'}).")
+        return
 
     source = games[0].source
     print(f"Slate for {args.date} — {len(games)} games (source: {source}), "
