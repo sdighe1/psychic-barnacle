@@ -78,13 +78,18 @@ def _to_int(v, default: int | None = None) -> int | None:
 # --------------------------------------------------------------------------- #
 # Event-file parsing → per-player rate aggregates
 # --------------------------------------------------------------------------- #
-def parse_event_text(text: str) -> tuple[dict, dict, dict]:
+def parse_event_text(text: str, bats_fn=None, throws_fn=None) -> tuple[dict, dict, dict]:
     """Aggregate one event file into batting / pitching / bullpen outcome counts.
 
     Returns three dicts keyed by player id (bullpen keyed by team id), each mapping
     outcome → count and carrying a ``"PA"`` total::
 
         bat[batter_id][outcome], pit[pitcher_id][outcome], bullpen[team_id][outcome]
+
+    When ``bats_fn(retro_id)->L/R/B`` and ``throws_fn(retro_id)->L/R`` are supplied,
+    also accumulates **platoon splits**: batters keyed by the opposing pitcher's hand
+    (``outcome_vL``/``outcome_vR``), pitchers/bullpens by the batter's *effective* hand
+    (switch hitters bat opposite the arm).
     """
     bat: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     pit: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
@@ -125,26 +130,53 @@ def parse_event_text(text: str) -> tuple[dict, dict, dict]:
             bat[batter]["PA"] += 1
             pside = 1 - bside
             pid = cur_p[pside]
+            pt = throws_fn(pid) if (throws_fn and pid) else None
+            if pt in ("L", "R"):                         # batter split by pitcher hand
+                bsuf = "_vL" if pt == "L" else "_vR"
+                bat[batter][outcome + bsuf] += 1
+                bat[batter]["PA" + bsuf] += 1
             if pid is not None:
                 pit[pid][outcome] += 1
                 pit[pid]["PA"] += 1
-                if start_p[pside] is not None and pid != start_p[pside]:
-                    pteam = home if pside == 1 else vis
-                    if pteam:
-                        bull[pteam][outcome] += 1
-                        bull[pteam]["PA"] += 1
+                is_relief = start_p[pside] is not None and pid != start_p[pside]
+                pteam = (home if pside == 1 else vis) if is_relief else None
+                if pteam:
+                    bull[pteam][outcome] += 1
+                    bull[pteam]["PA"] += 1
+                if pt in ("L", "R") and bats_fn:         # pitcher split by batter eff. hand
+                    bb = bats_fn(batter)
+                    eff = ("R" if pt == "L" else "L") if bb == "B" else bb
+                    if eff in ("L", "R"):
+                        psuf = "_vL" if eff == "L" else "_vR"
+                        pit[pid][outcome + psuf] += 1
+                        pit[pid]["PA" + psuf] += 1
+                        if pteam:
+                            bull[pteam][outcome + psuf] += 1
+                            bull[pteam]["PA" + psuf] += 1
     return bat, pit, bull
 
 
+_SIDES = ["", "_vL", "_vR"]     # overall, vs LHP/LHB, vs RHP/RHB
+
+
 def counts_to_frame(counts: dict, key_name: str, season: int) -> pd.DataFrame:
-    """Turn a ``{id: {outcome: n}}`` dict into a tidy DataFrame (one row per id)."""
+    """Turn a ``{id: {outcome: n}}`` dict into a tidy DataFrame (one row per id).
+
+    Columns: overall ``PA``/outcomes (unchanged) plus platoon splits ``PA_vL``,
+    ``{outcome}_vL``, ``PA_vR``, ``{outcome}_vR``.
+    """
     rows = []
     for key, c in counts.items():
-        row = {key_name: key, "season": season, "PA": int(c.get("PA", 0))}
-        for o in PA_OUTCOMES:
-            row[o] = int(c.get(o, 0))
+        row = {key_name: key, "season": season}
+        for s in _SIDES:
+            row["PA" + s] = int(c.get("PA" + s, 0))
+            for o in PA_OUTCOMES:
+                row[o + s] = int(c.get(o + s, 0))
         rows.append(row)
-    cols = [key_name, "season", "PA", *PA_OUTCOMES]
+    cols = [key_name, "season"]
+    for s in _SIDES:
+        cols.append("PA" + s)
+        cols += [o + s for o in PA_OUTCOMES]
     return pd.DataFrame(rows, columns=cols)
 
 

@@ -10,7 +10,8 @@ LEAGUE = LEAGUE / LEAGUE.sum()
 
 
 def _league_result(n=2000, seed=7):
-    sp, bp = precompute_matchups([LEAGUE] * 9, LEAGUE, LEAGUE, LEAGUE, 1.0)
+    pairs = [(LEAGUE, LEAGUE)] * 9
+    sp, bp = precompute_matchups(pairs, pairs, LEAGUE, 1.0)
     pack = TeamPack(sp, bp, 27)
     return simulate_game(pack, pack, n_sims=n, seed=seed)
 

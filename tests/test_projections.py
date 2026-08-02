@@ -59,3 +59,47 @@ def test_bullpen_lookup():
     ps = ProjectionSystem(age_per_year=0.0).fit(bat, pit, bull, ref_season=2024)
     assert abs(ps.bullpen("AAA").sum() - 1.0) < 1e-9
     assert np.allclose(ps.bullpen("ZZZ"), ps.league_pit)     # unknown team -> league
+
+
+# --------------------------- platoon splits --------------------------- #
+def _counts_row_split(season, overall, pa, rate_vL, pa_vL, rate_vR, pa_vR, rid="x"):
+    row = {"retro_id": rid, "season": season, "PA": pa}
+    for o, r in zip(PA_OUTCOMES, overall):
+        row[o] = r * pa
+    for suf, rate, spa in (("_vL", rate_vL, pa_vL), ("_vR", rate_vR, pa_vR)):
+        row["PA" + suf] = spa
+        for o, r in zip(PA_OUTCOMES, rate):
+            row[o + suf] = r * spa
+    return row
+
+
+def _split_frames():
+    """A masher (crushes LHP, weak vs RHP) plus league-average filler for factors."""
+    hi = LEAGUE.copy(); hi[3] *= 3.0; hi /= hi.sum()          # vs LHP: lots of HR
+    lo = LEAGUE.copy(); lo[3] *= 0.3; lo /= lo.sum()          # vs RHP: few HR
+    rows_bat = []
+    for season in (2021, 2022, 2023):
+        rows_bat.append(_counts_row_split(season, LEAGUE, 1200, hi, 600, lo, 600, rid="masher"))
+        for filler in ("f1", "f2"):                          # neutral batters -> league factor ~1
+            rows_bat.append(_counts_row_split(season, LEAGUE, 1200, LEAGUE, 600, LEAGUE, 600, rid=filler))
+    pit = pd.DataFrame([{**_counts_row(s, LEAGUE, 700), "retro_id": "pit1"} for s in (2021, 2022, 2023)])
+    bull = pd.DataFrame([{**_counts_row(s, LEAGUE, 2000), "team": "AAA"} for s in (2021, 2022, 2023)])
+    return pd.DataFrame(rows_bat), pit, bull
+
+
+def test_platoon_projection_direction():
+    bat, pit, bull = _split_frames()
+    ps = ProjectionSystem(age_per_year=0.0).fit(bat, pit, bull, ref_season=2024)
+    HR = PA_OUTCOMES.index("HR")
+    vL, vR, overall = ps.batter("masher", vs="L"), ps.batter("masher", vs="R"), ps.batter("masher")
+    assert abs(vL.sum() - 1.0) < 1e-9 and abs(vR.sum() - 1.0) < 1e-9
+    assert vL[HR] > overall[HR] > vR[HR]                     # split brackets the overall rate
+    assert vL[HR] > vR[HR] + 0.02                            # and the gap is material
+
+
+def test_platoon_falls_back_to_overall_when_unsplit():
+    # Frames without split columns must still fit and serve the overall vector for any `vs`.
+    bat, pit, bull = _make_frames()
+    ps = ProjectionSystem(age_per_year=0.0).fit(bat, pit, bull, ref_season=2024)
+    assert np.allclose(ps.batter("bat1", vs="L"), ps.batter("bat1"))
+    assert np.allclose(ps.pitcher("pit1", vs="R"), ps.pitcher("pit1"))

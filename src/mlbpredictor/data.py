@@ -19,10 +19,14 @@ from collections import defaultdict
 import pandas as pd
 
 from .config import load_config
+from .ids import bats_of, throws_of
 from .net import cached_text, fetch_text
 from .paths import CACHE_DIR
 from .retrosheet import (PA_OUTCOMES, counts_to_frame, parse_event_text,
                          parse_gamelog_text)
+
+# Bump when the parsed-aggregate schema changes (e.g. platoon splits added).
+_AGG_VERSION = "pl1"
 
 
 # --------------------------------------------------------------------------- #
@@ -93,7 +97,7 @@ def _build_season_aggregates(season: int) -> dict[str, pd.DataFrame]:
             text = fetch_text(f"{cfg['retro_base']}/{season}/{season}{team}.EVA")
         if not text:
             continue
-        b, p, bl = parse_event_text(text)
+        b, p, bl = parse_event_text(text, bats_fn=bats_of, throws_fn=throws_of)
         _merge_counts(bat, b)
         _merge_counts(pit, p)
         _merge_counts(bull, bl)
@@ -106,12 +110,12 @@ def _build_season_aggregates(season: int) -> dict[str, pd.DataFrame]:
 
 
 def _season_aggregate(kind: str, season: int, refresh: bool = False) -> pd.DataFrame:
-    cache = CACHE_DIR / f"{kind}_{season}.parquet"
+    cache = CACHE_DIR / f"{kind}_{_AGG_VERSION}_{season}.parquet"
     if cache.exists() and not refresh:
         return pd.read_parquet(cache)
     aggs = _build_season_aggregates(season)
     for k, frame in aggs.items():
-        frame.to_parquet(CACHE_DIR / f"{k}_{season}.parquet", index=False)
+        frame.to_parquet(CACHE_DIR / f"{k}_{_AGG_VERSION}_{season}.parquet", index=False)
     return aggs[kind]
 
 

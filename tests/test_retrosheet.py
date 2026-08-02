@@ -60,6 +60,45 @@ def test_parse_event_attribution():
     assert "AAA" not in bull                                     # no relievers used by AAA
 
 
+_HAND_EVENT = """id,TST202304070
+info,visteam,AAA
+info,hometeam,BBB
+start,batL,"Bats Left",0,1,7
+start,batS,"Switch",0,2,4
+start,pitL,"Lefty",0,0,1
+start,batR,"Bats Right",1,1,3
+start,pitR,"Righty",1,0,1
+play,1,0,batL,00,X,S7
+play,1,0,batS,00,X,K
+play,1,1,batR,00,X,HR/F9
+"""
+
+
+def test_parse_event_platoon_splits():
+    bats = {"batL": "L", "batR": "R", "batS": "B"}.get
+    throws = {"pitL": "L", "pitR": "R"}.get
+    bat, pit, bull = parse_event_text(_HAND_EVENT, bats_fn=bats, throws_fn=throws)
+    # Side-0 batters face the HOME starter pitR (RHP) -> split vs R.
+    assert bat["batL"]["1B_vR"] == 1 and bat["batL"].get("1B_vL", 0) == 0
+    assert bat["batL"]["PA_vR"] == 1
+    assert bat["batS"]["SO_vR"] == 1                      # switch hitter, keyed by arm faced
+    # Side-1 batter faces the VISITOR starter pitL (LHP) -> split vs L.
+    assert bat["batR"]["HR_vL"] == 1 and bat["batR"].get("HR_vR", 0) == 0
+    # Pitcher splits keyed by the batter's EFFECTIVE hand:
+    # pitR faces batL (L) and batS (switch vs RHP -> bats L) -> both count vs L.
+    assert pit["pitR"]["1B_vL"] == 1 and pit["pitR"]["SO_vL"] == 1
+    assert pit["pitL"]["HR_vR"] == 1                      # pitL faces batR (R)
+    # Overall columns are unchanged by the split accounting.
+    assert bat["batL"]["1B"] == 1 and pit["pitR"]["PA"] == 2
+
+
+def test_parse_event_no_handedness_is_overall_only():
+    # Without hand functions, only the overall (unsplit) counts are produced.
+    bat, pit, _ = parse_event_text(_HAND_EVENT)
+    assert bat["batL"]["1B"] == 1 and "1B_vL" not in bat["batL"] and "1B_vR" not in bat["batL"]
+    assert pit["pitR"]["PA"] == 2 and "PA_vL" not in pit["pitR"]
+
+
 def _make_gamelog_row():
     rec = [""] * 161
     rec[0] = "20230330"      # date

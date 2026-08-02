@@ -69,6 +69,42 @@ def _age_adjust(rate: np.ndarray, retro_id: str, ref_season: int,
     return adj / adj.sum()
 
 
+_BAT_SPLIT_REG = 900.0      # PA of regression for batter platoon splits (they're noisy)
+_PIT_SPLIT_REG = 1200.0     # BF of regression for pitcher platoon splits
+
+
+def _weighted_split(sub: pd.DataFrame, weights: list[float], suffix: str):
+    """Raw weighted split rate + PA for the ``_vL``/``_vR`` columns (no regression)."""
+    cols = [o + suffix for o in PA_OUTCOMES]
+    if not all(c in sub.columns for c in cols) or ("PA" + suffix) not in sub.columns:
+        return None, 0.0                       # split columns absent (e.g. synthetic frames)
+    sub = sub.sort_values("season", ascending=False).head(len(weights))
+    wc = np.zeros(_N)
+    wpa = 0.0
+    pa = 0.0
+    for w, (_, r) in zip(weights, sub.iterrows()):
+        wc += w * np.array([float(r[o + suffix]) for o in PA_OUTCOMES])
+        wpa += w * float(r["PA" + suffix])
+        pa += float(r["PA" + suffix])
+    return (wc / wpa if wpa > 0 else None), pa
+
+
+def _safe_ratio(side: np.ndarray, overall: np.ndarray) -> np.ndarray:
+    return np.where(overall > 1e-9, side / np.maximum(overall, 1e-9), 1.0)
+
+
+def _platoon_project(overall, factor, obs_rate, obs_pa, reg) -> np.ndarray:
+    """League-platoon-adjusted overall (prior), blended with the observed split."""
+    prior = overall * factor
+    s = prior.sum()
+    prior = prior / s if s > 0 else overall
+    if obs_rate is None or obs_pa <= 0:
+        return prior
+    blended = (obs_rate * obs_pa + prior * reg) / (obs_pa + reg)
+    bs = blended.sum()
+    return blended / bs if bs > 0 else prior
+
+
 class ProjectionSystem:
     """Builds and serves projected PA-outcome rate vectors."""
 
@@ -90,13 +126,35 @@ class ProjectionSystem:
         self.bull_: dict[str, np.ndarray] = {}
         self._bat_pa: dict[str, float] = {}
         self._pit_pa: dict[str, float] = {}
+        # Platoon splits (vs L / vs R). Batter keys = opposing pitcher hand;
+        # pitcher/bullpen keys = batter's effective hand.
+        self.bat_vL_: dict[str, np.ndarray] = {}
+        self.bat_vR_: dict[str, np.ndarray] = {}
+        self.pit_vL_: dict[str, np.ndarray] = {}
+        self.pit_vR_: dict[str, np.ndarray] = {}
+        self.bull_vL_: dict[str, np.ndarray] = {}
+        self.bull_vR_: dict[str, np.ndarray] = {}
 
     # ------------------------------------------------------------------ #
     @staticmethod
-    def _league_vec(agg: pd.DataFrame) -> np.ndarray:
-        tot = np.array([float(agg[o].sum()) for o in PA_OUTCOMES])
+    def _league_vec(agg: pd.DataFrame, suffix: str = "") -> np.ndarray:
+        cols = [o + suffix for o in PA_OUTCOMES]
+        if not all(c in agg.columns for c in cols):        # split columns absent
+            return ProjectionSystem._league_vec(agg) if suffix else np.full(_N, 1.0 / _N)
+        tot = np.array([float(agg[c].sum()) for c in cols])
         s = tot.sum()
         return tot / s if s > 0 else np.full(_N, 1.0 / _N)
+
+    def _fit_splits(self, sub, overall, factor_L, factor_R, reg):
+        """Return ``(vs_L, vs_R)`` platoon projections for one player.
+
+        Prior = the player's (league-platoon-adjusted) overall; blended with their
+        observed split, heavily regressed since splits are noisy.
+        """
+        oL, paL = _weighted_split(sub, self.weights, "_vL")
+        oR, paR = _weighted_split(sub, self.weights, "_vR")
+        return (_platoon_project(overall, factor_L, oL, paL, reg),
+                _platoon_project(overall, factor_R, oR, paR, reg))
 
     def fit(self, batting: pd.DataFrame, pitching: pd.DataFrame, bullpen: pd.DataFrame,
             ref_season: int) -> "ProjectionSystem":
@@ -110,33 +168,61 @@ class ProjectionSystem:
 
         self.league_bat = self._league_vec(bat)
         self.league_pit = self._league_vec(pit)
+        # League platoon factors: how the average player's rates shift by opposing hand.
+        pf_bat_L = _safe_ratio(self._league_vec(bat, "_vL"), self.league_bat)
+        pf_bat_R = _safe_ratio(self._league_vec(bat, "_vR"), self.league_bat)
+        pf_pit_L = _safe_ratio(self._league_vec(pit, "_vL"), self.league_pit)
+        pf_pit_R = _safe_ratio(self._league_vec(pit, "_vR"), self.league_pit)
+        pf_bull_L = _safe_ratio(self._league_vec(bull, "_vL"), self._league_vec(bull))
+        pf_bull_R = _safe_ratio(self._league_vec(bull, "_vR"), self._league_vec(bull))
 
         for rid, sub in bat.groupby("retro_id"):
             rate, _ = _weighted_regressed(sub, self.weights, self.league_bat, self.bat_regress_pa)
             rate = _age_adjust(rate, rid, self.ref_season, self.age_peak, self.age_per_year)
             self.bat_[rid] = rate
             self._bat_pa[rid] = float(sub["PA"].sum())
+            self.bat_vL_[rid], self.bat_vR_[rid] = self._fit_splits(
+                sub, rate, pf_bat_L, pf_bat_R, _BAT_SPLIT_REG)
         for rid, sub in pit.groupby("retro_id"):
             rate, _ = _weighted_regressed(sub, self.weights, self.league_pit, self.pit_regress_bf)
             self.pit_[rid] = rate
             self._pit_pa[rid] = float(sub["PA"].sum())
+            self.pit_vL_[rid], self.pit_vR_[rid] = self._fit_splits(
+                sub, rate, pf_pit_L, pf_pit_R, _PIT_SPLIT_REG)
         for team, sub in bull.groupby("team"):
             rate, _ = _weighted_regressed(sub, self.weights, self.league_pit, self.pit_regress_bf)
             self.bull_[team] = rate
+            self.bull_vL_[team], self.bull_vR_[team] = self._fit_splits(
+                sub, rate, pf_bull_L, pf_bull_R, _PIT_SPLIT_REG)
         return self
 
     # ------------------------------------------------------------------ #
-    def batter(self, retro_id: str) -> np.ndarray:
-        """Projected rate vector for a batter (league average if unknown)."""
-        return self.bat_.get(retro_id, self.league_bat)
+    def batter(self, retro_id: str, vs: str | None = None) -> np.ndarray:
+        """Batter rate vector; ``vs`` = opposing pitcher hand ('L'/'R') for the split."""
+        overall = self.bat_.get(retro_id, self.league_bat)
+        if vs == "L":
+            return self.bat_vL_.get(retro_id, overall)
+        if vs == "R":
+            return self.bat_vR_.get(retro_id, overall)
+        return overall
 
-    def pitcher(self, retro_id: str) -> np.ndarray:
-        """Projected rate vector allowed by a (starting) pitcher; league avg if unknown."""
-        return self.pit_.get(retro_id, self.league_pit)
+    def pitcher(self, retro_id: str, vs: str | None = None) -> np.ndarray:
+        """Pitcher allowed-rate vector; ``vs`` = batter's effective hand ('L'/'R')."""
+        overall = self.pit_.get(retro_id, self.league_pit)
+        if vs == "L":
+            return self.pit_vL_.get(retro_id, overall)
+        if vs == "R":
+            return self.pit_vR_.get(retro_id, overall)
+        return overall
 
-    def bullpen(self, team: str) -> np.ndarray:
-        """Projected rate vector allowed by a team's bullpen; league avg if unknown."""
-        return self.bull_.get(team, self.league_pit)
+    def bullpen(self, team: str, vs: str | None = None) -> np.ndarray:
+        """Bullpen allowed-rate vector; ``vs`` = batter's effective hand ('L'/'R')."""
+        overall = self.bull_.get(team, self.league_pit)
+        if vs == "L":
+            return self.bull_vL_.get(team, overall)
+        if vs == "R":
+            return self.bull_vR_.get(team, overall)
+        return overall
 
     def known_batter(self, retro_id: str) -> bool:
         return retro_id in self.bat_

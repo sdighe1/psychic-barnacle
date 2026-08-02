@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from .ids import effective_bats, throws_of
 from .matchup import matchup_probs
 from .retrosheet import PA_OUTCOMES
 
@@ -45,6 +46,22 @@ def team_pa_rates(lineup_vecs, starter_vec, bullpen_vec, league_vec,
     return acc / len(lineup_vecs)
 
 
+def team_pa_rates_platoon(ps, lineup_ids, starter_id, bullpen_team, league_vec,
+                          park_factor: float = 1.0, sp_share: float = SP_SHARE) -> np.ndarray:
+    """Aggregate lineup rates vs the opposing pitching, **platoon-resolved** for the
+    starter (batter vs the starter's hand × starter vs the batter's hand); the bullpen
+    portion is platoon-neutral (mixed-handed)."""
+    pt = throws_of(starter_id)
+    bull = ps.bullpen(bullpen_team)
+    acc = np.zeros(len(PA_OUTCOMES))
+    for b in lineup_ids:
+        q_sp = matchup_probs(ps.batter(b, vs=pt), ps.pitcher(starter_id, vs=effective_bats(b, pt)),
+                             league_vec, park_factor)
+        q_bp = matchup_probs(ps.batter(b), bull, league_vec, park_factor)
+        acc += sp_share * q_sp + (1.0 - sp_share) * q_bp
+    return acc / max(len(lineup_ids), 1)
+
+
 class OffenseModel:
     """Maps projection inputs to an expected run total, calibrated to league."""
 
@@ -59,5 +76,15 @@ class OffenseModel:
                       park_factor: float = 1.0) -> float:
         q = team_pa_rates(lineup_vecs, starter_vec, bullpen_vec, self.league_vec,
                           park_factor, self.sp_share)
+        return self._to_runs(q)
+
+    def expected_runs_ids(self, ps, lineup_ids, starter_id, bullpen_team,
+                          park_factor: float = 1.0) -> float:
+        """Platoon-aware expected runs from player ids (the deployed/backtest path)."""
+        q = team_pa_rates_platoon(ps, lineup_ids, starter_id, bullpen_team,
+                                  self.league_vec, park_factor, self.sp_share)
+        return self._to_runs(q)
+
+    def _to_runs(self, q: np.ndarray) -> float:
         ratio = woba(q) / self.league_woba if self.league_woba > 0 else 1.0
         return float(np.clip(self.lg_rpg * ratio, 0.5, 20.0))

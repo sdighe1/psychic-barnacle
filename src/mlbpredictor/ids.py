@@ -86,3 +86,54 @@ def retro_for_mlbam(mlbam_id: str | int) -> str | None:
 def retro_for_name(name: str) -> str | None:
     """Fallback: map a display name to a Retrosheet id (case-insensitive)."""
     return _maps()[3].get((name or "").strip().lower())
+
+
+# --------------------------------------------------------------------------- #
+# Handedness (bats / throws) from the Retrosheet biofile — for platoon splits
+# --------------------------------------------------------------------------- #
+_BIOFILE_URL = ("https://raw.githubusercontent.com/chadwickbureau/retrosheet/master/"
+                "reference/biofile.csv")
+
+
+def load_handedness(refresh: bool = False) -> pd.DataFrame:
+    """Return ``retro_id, bats, throws`` (``B`` = switch hitter). Cached."""
+    cache = CACHE_DIR / "handedness.parquet"
+    if cache.exists() and not refresh:
+        return pd.read_parquet(cache)
+    text = fetch_text(_BIOFILE_URL)
+    if not text:
+        raise RuntimeError("Could not download the Retrosheet biofile (handedness).")
+    df = pd.read_csv(io.StringIO(text), usecols=lambda c: c in ("PLAYERID", "BATS", "THROWS"),
+                     dtype=str)
+    df = df.rename(columns={"PLAYERID": "retro_id", "BATS": "bats", "THROWS": "throws"})
+    df["bats"] = df["bats"].str.upper().where(df["bats"].isin(["L", "R", "B"]))
+    df["throws"] = df["throws"].str.upper().where(df["throws"].isin(["L", "R"]))
+    df = df.dropna(subset=["retro_id"]).drop_duplicates("retro_id")
+    df.to_parquet(cache, index=False)
+    return df
+
+
+@lru_cache(maxsize=1)
+def _hand_maps() -> tuple[dict, dict]:
+    h = load_handedness()
+    return dict(zip(h["retro_id"], h["bats"])), dict(zip(h["retro_id"], h["throws"]))
+
+
+def bats_of(retro_id: str, default: str = "R") -> str:
+    """Batting hand: 'L', 'R', or 'B' (switch). Defaults to R (most common)."""
+    b = _hand_maps()[0].get(retro_id)
+    return b if b in ("L", "R", "B") else default
+
+
+def throws_of(retro_id: str, default: str = "R") -> str:
+    """Throwing hand: 'L' or 'R'. Defaults to R."""
+    t = _hand_maps()[1].get(retro_id)
+    return t if t in ("L", "R") else default
+
+
+def effective_bats(retro_id: str, pitcher_throws: str) -> str:
+    """A batter's effective side vs a pitcher (switch hitters bat opposite the arm)."""
+    b = bats_of(retro_id)
+    if b == "B":
+        return "R" if pitcher_throws == "L" else "L"
+    return b

@@ -35,19 +35,21 @@ P_SAC_FLY = 0.30
 P_OUT_ADVANCE = 0.26      # a "productive out" nudges each runner up one base
 
 
-def precompute_matchups(lineup_vecs, starter_vec, bullpen_vec, league_vec,
+def precompute_matchups(sp_pairs, bp_pairs, league_vec,
                         park_factor: float = 1.0, tto_factors=(1.0,)):
     """Return ``(vs_starter[9], vs_bullpen[9])`` cumulative outcome distributions.
 
-    ``vs_starter[i]`` is a list of cumulative dists — one per *time through the order*
-    (``tto_factors`` scales the batter's offense as the starter tires). ``vs_bullpen[i]``
-    is a single cumulative dist.
+    ``sp_pairs[i]`` / ``bp_pairs[i]`` are ``(batter_vec, pitcher_vec)`` for batting slot
+    ``i`` (already platoon-resolved by the caller). ``vs_starter[i]`` is a list of
+    cumulative dists — one per *time through the order* (``tto_factors`` scales the
+    batter's offense as the starter tires); ``vs_bullpen[i]`` is a single dist.
     """
     vs_sp, vs_bp = [], []
-    for b in lineup_vecs:
-        base_sp = matchup_probs(b, starter_vec, league_vec, park_factor)
+    for (bvec, pvec) in sp_pairs:
+        base_sp = matchup_probs(bvec, pvec, league_vec, park_factor)
         vs_sp.append([np.cumsum(scale_offense(base_sp, f)) for f in tto_factors])
-        vs_bp.append(np.cumsum(matchup_probs(b, bullpen_vec, league_vec, park_factor)))
+    for (bvec, pvec) in bp_pairs:
+        vs_bp.append(np.cumsum(matchup_probs(bvec, pvec, league_vec, park_factor)))
     return vs_sp, vs_bp
 
 

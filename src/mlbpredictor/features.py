@@ -65,15 +65,9 @@ class GameFeatureBuilder:
     # ------------------------------------------------------------------ #
     def _expected(self, row, ps: ProjectionSystem, off: OffenseModel):
         pf = self.park.factor(row.park)
-        home_vecs = [ps.batter(i) for i in row.home_lineup]
-        away_vecs = [ps.batter(i) for i in row.away_lineup]
-        home_sp = ps.pitcher(row.home_sp)
-        away_sp = ps.pitcher(row.away_sp)
-        home_bp = ps.bullpen(row.home_team)
-        away_bp = ps.bullpen(row.away_team)
-        eh = off.expected_runs(home_vecs, away_sp, away_bp, pf)   # home bats vs away arms
-        ea = off.expected_runs(away_vecs, home_sp, home_bp, pf)
-        return eh, ea, woba(home_sp), woba(away_sp), pf
+        eh = off.expected_runs_ids(ps, list(row.home_lineup), row.away_sp, row.away_team, pf)
+        ea = off.expected_runs_ids(ps, list(row.away_lineup), row.home_sp, row.home_team, pf)
+        return eh, ea, woba(ps.pitcher(row.home_sp)), woba(ps.pitcher(row.away_sp)), pf
 
     def _build_season_models(self, batting, pitching, bullpen, lg_rpg_by_season, seasons):
         for Y in seasons:
@@ -166,16 +160,12 @@ class GameFeatureBuilder:
         """Feature row for one hypothetical/today's game, from deployed state."""
         ps, off = self.deploy_proj, self.deploy_offense
         pf = self.park.factor(park)
-        home_vecs = [ps.batter(i) for i in home_lineup]
-        away_vecs = [ps.batter(i) for i in away_lineup]
-        home_sp_v, away_sp_v = ps.pitcher(home_sp), ps.pitcher(away_sp)
-        home_bp, away_bp = ps.bullpen(home_team), ps.bullpen(away_team)
-        eh = off.expected_runs(home_vecs, away_sp_v, away_bp, pf)
-        ea = off.expected_runs(away_vecs, home_sp_v, home_bp, pf)
+        eh = off.expected_runs_ids(ps, list(home_lineup), away_sp, away_team, pf)
+        ea = off.expected_runs_ids(ps, list(away_lineup), home_sp, home_team, pf)
         row = {
             "elo_diff": self.elo.rating(home_team) - self.elo.rating(away_team),
             "exp_home_runs": eh, "exp_away_runs": ea, "exp_run_diff": eh - ea,
-            "home_sp_quality": woba(home_sp_v), "away_sp_quality": woba(away_sp_v),
+            "home_sp_quality": woba(ps.pitcher(home_sp)), "away_sp_quality": woba(ps.pitcher(away_sp)),
             "park_factor": pf, "home_rest": DEFAULT_REST, "away_rest": DEFAULT_REST,
         }
         return pd.DataFrame([row], columns=FEATURES)

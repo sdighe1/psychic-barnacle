@@ -19,13 +19,22 @@ import pandas as pd
 
 from .config import load_config
 from .features import GameFeatureBuilder
-from .ids import name_for
+from .ids import effective_bats, name_for, throws_of
 from .models.ensemble import EnsembleModel
 from .paths import MODEL_PATH
 from .prediction import GamePrediction
 from .simulate import TeamPack, precompute_matchups, simulate_game
 
 _CLIP = 1e-3
+
+
+def _platoon_pairs(ps, lineup, starter_id, opp_team):
+    """Per-batter ``(batter_vec, pitcher_vec)`` pairs vs the starter (platoon-resolved)
+    and vs the bullpen (platoon-neutral, since a bullpen is mixed-handed)."""
+    pt = throws_of(starter_id)
+    sp = [(ps.batter(b, vs=pt), ps.pitcher(starter_id, vs=effective_bats(b, pt))) for b in lineup]
+    bp = [(ps.batter(b), ps.bullpen(opp_team)) for b in lineup]
+    return sp, bp
 
 
 def _importance_weights(res, p_home_cal: float) -> np.ndarray:
@@ -66,16 +75,14 @@ class Predictor:
         ps = self.fb.deploy_proj
         pf = self.fb.park.factor(park)
         lg = ps.league_bat
-        home_vecs = [ps.batter(i) for i in home_lineup]
-        away_vecs = [ps.batter(i) for i in away_lineup]
-        home_sp_v, away_sp_v = ps.pitcher(home_sp), ps.pitcher(away_sp)
-        home_bp, away_bp = ps.bullpen(home_team), ps.bullpen(away_team)
         smax = int(cfg["starter_max_batters"])
         tto = tuple(cfg.get("tto_factors", (1.0,)))
 
-        # away bats vs home pitching; home bats vs away pitching
-        away_pack = TeamPack(*precompute_matchups(away_vecs, home_sp_v, home_bp, lg, pf, tto_factors=tto), smax)
-        home_pack = TeamPack(*precompute_matchups(home_vecs, away_sp_v, away_bp, lg, pf, tto_factors=tto), smax)
+        # away bats vs home pitching; home bats vs away pitching (platoon-resolved)
+        a_sp, a_bp = _platoon_pairs(ps, away_lineup, home_sp, home_team)
+        h_sp, h_bp = _platoon_pairs(ps, home_lineup, away_sp, away_team)
+        away_pack = TeamPack(*precompute_matchups(a_sp, a_bp, lg, pf, tto_factors=tto), smax)
+        home_pack = TeamPack(*precompute_matchups(h_sp, h_bp, lg, pf, tto_factors=tto), smax)
         res = simulate_game(away_pack, home_pack, n_sims=n_sims,
                             ghost_runner=bool(cfg["extra_innings_ghost_runner"]), seed=seed)
 
