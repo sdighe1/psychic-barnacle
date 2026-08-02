@@ -33,11 +33,16 @@ def _temper(p: np.ndarray, T: float) -> np.ndarray:
 class EnsembleModel:
     RUNDIST = "rundist"
 
-    def __init__(self, rundist, members: dict):
-        """``members`` maps name -> model; one entry (``rundist``) is the run model."""
+    def __init__(self, rundist, members: dict, ridge: float = 0.004):
+        """``members`` maps name -> model; one entry (``rundist``) is the run model.
+
+        ``ridge`` is a small L2 pull toward equal weights in the blend objective, so
+        the optimiser can't collapse onto a single (possibly overfit) component.
+        """
         self.rundist = rundist
         self.members = members
         self.names = list(members.keys())
+        self.ridge = float(ridge)
         self.weights = np.ones(len(self.names)) / len(self.names)
         self.temperature = 1.0
 
@@ -63,8 +68,9 @@ class EnsembleModel:
             s = w.sum()
             if s == 0:
                 return 1e9
-            b = (w / s) @ P
-            return _logloss(y, b)
+            wn = w / s
+            b = wn @ P
+            return _logloss(y, b) + self.ridge * float(np.sum((wn - 1.0 / m) ** 2))
 
         cons = {"type": "eq", "fun": lambda w: w.sum() - 1.0}
         res = minimize(obj, np.ones(m) / m, method="SLSQP", bounds=[(0.0, 1.0)] * m,

@@ -30,6 +30,12 @@ DEFAULTS: dict = {
     "intervals": {
         "levels": [0.5, 0.9],
     },
+    "freshen": {
+        "enabled": True,
+        "elo_revert": 0.20,
+        "w_base_pa": 400,
+        "w_base_bf": 500,
+    },
     "simulation": {
         "n_sims": 5000,
         "starter_max_tto": 3.0,

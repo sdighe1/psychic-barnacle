@@ -31,6 +31,16 @@ intervals:
   # Central credible-interval levels reported for every count output (0.5 = IQR).
   levels: [0.5, 0.9]
 
+freshen:
+  # Update the deployed model with current-season form (live, via statsapi) before
+  # predicting, since the committed model is trained only through the last complete
+  # Retrosheet season. Weights are how much the multi-year projection is trusted (as a
+  # prior) vs. current-season data: higher = slower to move off the base projection.
+  enabled: true
+  elo_revert: 0.20        # offseason regression toward the mean before applying this season
+  w_base_pa: 400          # batter prior strength (in PA)
+  w_base_bf: 500          # pitcher prior strength (in batters faced)
+
 simulation:
   n_sims: 5000
   # Pull the starter after this many times through the order OR pitch-count proxy.

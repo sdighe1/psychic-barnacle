@@ -44,6 +44,17 @@ def main() -> None:
         raise SystemExit("No trained model found. Run `python scripts/train_mlb.py` first.")
     predictor = Predictor.load()
 
+    # Freshen with current-season form (Elo + projections) when live data is available.
+    from mlbpredictor.config import load_config              # noqa: E402
+    from mlbpredictor.livedata import statsapi_reachable      # noqa: E402
+    if not args.no_live and load_config()["freshen"]["enabled"] and statsapi_reachable():
+        from mlbpredictor.freshen import freshen_predictor    # noqa: E402
+        season = int(args.date[:4])
+        predictor, info = freshen_predictor(predictor, season=season, through_date=args.date)
+        if info.get("freshened"):
+            print(f"Freshened with {season} form: {info['games']} games, "
+                  f"{info['batters']} batters, {info['pitchers']} pitchers updated.\n")
+
     slate_path = Path(args.slate) if args.slate else _default_slate()
     games = get_slate(args.date, slate_path=slate_path, predictor=predictor,
                       prefer_live=not args.no_live)

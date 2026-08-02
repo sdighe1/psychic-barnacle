@@ -144,7 +144,13 @@ def main() -> None:
     # ---------------- Deployed model (all data) ---------------- #
     print("\nFitting deployed model on all data ...")
     members_all = _fit_members(feat)
-    ens_all = EnsembleModel(members_all["rundist"], members_all).fit_blend(feat)
+    # Refit the components on ALL data, but REUSE the validation-derived blend weights +
+    # temperature. Refitting the blend in-sample collapses onto the overfit-prone gboost
+    # (it looks perfect on its own training data); the out-of-sample val weights are the
+    # honest, robust blend that earned the backtest numbers.
+    ens_all = EnsembleModel(members_all["rundist"], members_all)
+    ens_all.weights = ens.weights.copy()
+    ens_all.temperature = ens.temperature
     predictor = Predictor(
         fb, ens_all,
         metrics={

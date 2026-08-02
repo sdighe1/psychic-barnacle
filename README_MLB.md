@@ -148,6 +148,18 @@ pulls the live slate; otherwise it transparently falls back to your **manual sla
 (`config/slate.yaml`), and everything else (training, backtesting, the dashboard) already
 works offline from GitHub-hosted data.
 
+### Current-season freshening
+
+Retrosheet publishes with a lag, so the committed model is trained only through the last
+**complete** season. When statsapi is reachable, `predict_today.py` first **freshens the model
+with current-season form** (`src/mlbpredictor/freshen.py`): it reverts Elo a touch for the new
+season and updates it through every completed game, and blends each player's season-to-date rate
+line into their multi-year projection (weighted by current PAs/BF — see `freshen:` in
+`config/mlb.yaml`). This is what keeps *this* season's predictions current rather than frozen at
+last season — e.g. a team that has regressed this year is no longer overrated off its prior form.
+It's idempotent (always starts from the committed base model) and leak-safe (only completed games
+move Elo). Turn it off with `freshen.enabled: false`.
+
 ### Manual slate format
 
 Fill in `config/slate.yaml` (see `config/slate.example.yaml`) once the probables are out.
