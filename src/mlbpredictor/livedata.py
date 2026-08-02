@@ -13,7 +13,9 @@ the Chadwick register bridge in :mod:`mlbpredictor.ids`.
 from __future__ import annotations
 
 import re
+from collections import defaultdict
 from dataclasses import dataclass, field
+from datetime import date as _date, timedelta
 
 import requests
 import yaml
@@ -29,6 +31,7 @@ STATSAPI_TEAM_ID_TO_RETRO = {
     137: "SFN", 138: "SLN", 139: "TBA", 140: "TEX", 141: "TOR", 142: "MIN",
     143: "PHI", 144: "ATL", 145: "CHA", 146: "MIA", 147: "NYA", 158: "MIL",
 }
+RETRO_TO_STATSAPI_TEAM_ID = {v: k for k, v in STATSAPI_TEAM_ID_TO_RETRO.items()}
 
 # Common abbreviations / names -> Retrosheet code (for manual slates).
 ABBREV_TO_RETRO = {
@@ -149,6 +152,122 @@ def parse_statsapi_schedule(payload: dict) -> list[GameInput]:
                 home_lineup=hl, away_lineup=al, park=None, source="statsapi",
                 home_lineup_confirmed=len(hl) >= 9, away_lineup_confirmed=len(al) >= 9))
     return games
+
+
+# --------------------------------------------------------------------------- #
+# Live: bullpen availability (active roster + recent usage) for specific-reliever pens
+# --------------------------------------------------------------------------- #
+def _statsapi_get(path: str, params: dict) -> dict:
+    cfg = load_config()["live"]
+    r = requests.get(f"{cfg['statsapi_base']}{path}", params=params, timeout=cfg["timeout_seconds"])
+    r.raise_for_status()
+    return r.json()
+
+
+def parse_roster_pitchers(payload: dict) -> list[str]:
+    """Retrosheet ids of the pitchers on an active-roster payload (pure)."""
+    out = []
+    for e in payload.get("roster", []) or []:
+        pos = e.get("position", {}) or {}
+        if pos.get("abbreviation") == "P" or pos.get("type") == "Pitcher":
+            rid = retro_for_mlbam((e.get("person") or {}).get("id"))
+            if rid:
+                out.append(rid)
+    return out
+
+
+def parse_boxscore_pitchers(payload: dict) -> list[tuple[str | None, str, bool]]:
+    """``(retro_team, retro_id, started)`` for every pitcher in a boxscore (pure)."""
+    out = []
+    for side in ("home", "away"):
+        t = payload.get("teams", {}).get(side, {}) or {}
+        team = STATSAPI_TEAM_ID_TO_RETRO.get((t.get("team") or {}).get("id"))
+        players = t.get("players", {}) or {}
+        for pid in t.get("pitchers", []) or []:
+            pdata = players.get(f"ID{pid}", {}) or {}
+            gs = ((pdata.get("stats") or {}).get("pitching") or {}).get("gamesStarted")
+            rid = retro_for_mlbam((pdata.get("person") or {}).get("id") or pid)
+            if rid:
+                out.append((team, rid, bool(gs)))
+    return out
+
+
+def fetch_pitcher_roles(season: int) -> dict[str, float]:
+    """``{retro_id: gamesStarted/games}`` for the season (≈1 = starter, ≈0 = reliever)."""
+    js = _statsapi_get("/stats", {"stats": "season", "group": "pitching", "season": season,
+                                  "sportId": 1, "gameType": "R", "limit": 4000, "playerPool": "all"})
+    roles: dict[str, float] = {}
+    for s in (js.get("stats", [{}])[0].get("splits", []) or []):
+        rid = retro_for_mlbam(s.get("player", {}).get("id"))
+        st = s.get("stat", {}) or {}
+        g = st.get("gamesPitched") or st.get("gamesPlayed") or 0
+        gs = st.get("gamesStarted") or 0
+        if rid and g:
+            roles[rid] = float(gs) / float(g)
+    return roles
+
+
+def fetch_recent_appearances(date: str, lookback_days: int) -> dict[str, set[int]]:
+    """``{retro_id: {days_ago,...}}`` for pitchers who appeared in the prior games."""
+    d0 = _date.fromisoformat(date)
+    start = (d0 - timedelta(days=int(lookback_days))).isoformat()
+    end = (d0 - timedelta(days=1)).isoformat()
+    js = _statsapi_get("/schedule", {"sportId": 1, "startDate": start, "endDate": end, "gameType": "R"})
+    appearances: dict[str, set[int]] = defaultdict(set)
+    for day in js.get("dates", []):
+        try:
+            days_ago = (d0 - _date.fromisoformat(day.get("date", ""))).days
+        except ValueError:
+            continue
+        for g in day.get("games", []):
+            if g.get("status", {}).get("abstractGameState") != "Final":
+                continue
+            try:
+                box = _statsapi_get(f"/game/{g.get('gamePk')}/boxscore", {})
+            except requests.RequestException:
+                continue
+            for _team, rid, _started in parse_boxscore_pitchers(box):
+                appearances[rid].add(days_ago)
+    return dict(appearances)
+
+
+def fetch_team_relievers(team_code: str, date: str, roles: dict[str, float],
+                         gs_frac: float) -> list[str]:
+    """Active-roster relievers for a team (rostered pitchers minus season starters)."""
+    tid = RETRO_TO_STATSAPI_TEAM_ID.get(team_code)
+    if not tid:
+        return []
+    js = _statsapi_get(f"/teams/{tid}/roster", {"rosterType": "active", "date": date})
+    return [r for r in parse_roster_pitchers(js) if roles.get(r, 0.0) < gs_frac]
+
+
+def fetch_bullpen_usage(date: str, team_codes, cfg: dict | None = None) -> dict[str, dict]:
+    """Per-team available relievers + recent-usage days, for ``team_bullpen_vector``.
+
+    Returns ``{team_code: {"relievers": [ids], "appearances": {id: {days_ago}}}}``.
+    Each statsapi call is guarded — a partial failure yields an empty entry for that
+    team, so the caller cleanly falls back to the season-aggregate bullpen.
+    """
+    cfg = cfg or load_config().get("bullpen", {})
+    season = int(str(date)[:4])
+    try:
+        roles = fetch_pitcher_roles(season)
+    except requests.RequestException:
+        roles = {}
+    try:
+        appearances = fetch_recent_appearances(date, int(cfg.get("lookback_days", 2)))
+    except requests.RequestException:
+        appearances = {}
+    gs_frac = float(cfg.get("starter_gs_frac", 0.5))
+    usage: dict[str, dict] = {}
+    for tc in sorted(set(team_codes)):
+        try:
+            relievers = fetch_team_relievers(tc, date, roles, gs_frac)
+        except requests.RequestException:
+            relievers = []
+        usage[tc] = {"relievers": relievers,
+                     "appearances": {r: appearances.get(r, set()) for r in relievers}}
+    return usage
 
 
 # --------------------------------------------------------------------------- #

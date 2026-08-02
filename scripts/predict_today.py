@@ -70,6 +70,24 @@ def main() -> None:
     print(f"Slate for {args.date} — {len(games)} games (source: {source}), "
           f"model trained through {predictor.trained_through}\n")
 
+    # Live specific-reliever bullpens (active roster + fatigue) when statsapi is up.
+    bullpen_vectors: dict = {}
+    from mlbpredictor.config import load_config as _lc                # noqa: E402
+    bp_cfg = _lc().get("bullpen", {})
+    if source == "statsapi" and not args.no_live and bp_cfg.get("use_live_relievers", True):
+        try:
+            from mlbpredictor.livedata import fetch_bullpen_usage      # noqa: E402
+            from mlbpredictor.bullpen import live_bullpen_vectors      # noqa: E402
+            teams = {g.home_team for g in games} | {g.away_team for g in games}
+            usage = fetch_bullpen_usage(args.date, teams, cfg=bp_cfg)
+            bullpen_vectors = live_bullpen_vectors(predictor.fb.deploy_proj, usage, cfg=bp_cfg)
+            live_pens = sum(1 for t in teams if usage.get(t, {}).get("relievers"))
+            print(f"Live bullpens: {live_pens}/{len(teams)} teams from active rosters "
+                  f"(fatigue-adjusted); rest use the season aggregate.\n")
+        except Exception as exc:                                      # never block predictions
+            print(f"  [bullpen] live roster fetch failed ({exc}); using season aggregates.\n")
+            bullpen_vectors = {}
+
     predictions = []
     header = (f"{'Away':>4} @ {'Home':<4} {'Fav':>4} {'Win%':>6} {'Fair':>7} {'Conf':>7}  "
               f"{'Proj':>7} {'Total':>6} {'O/U':>5}")
@@ -81,7 +99,8 @@ def main() -> None:
         pred = predictor.predict_game(
             g.home_team, g.away_team, g.home_sp, g.away_sp,
             g.home_lineup, g.away_lineup, park=g.park, date=args.date,
-            lineup_confirmed=g.lineups_confirmed, n_sims=args.n_sims)
+            lineup_confirmed=g.lineups_confirmed, bullpen_vectors=bullpen_vectors,
+            n_sims=args.n_sims)
         d = pred.to_dict()
         predictions.append(d)
         a, h = d["score"]["projected_away"], d["score"]["projected_home"]

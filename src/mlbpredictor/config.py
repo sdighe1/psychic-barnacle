@@ -44,6 +44,18 @@ DEFAULTS: dict = {
         "extra_innings_ghost_runner": True,
         "random_seed": 0,
     },
+    "bullpen": {
+        # Live specific-reliever bullpen (statsapi active roster + recent usage). When
+        # off / offline the season-aggregate team bullpen is used unchanged.
+        "use_live_relievers": True,
+        "quality_temp": 0.06,     # softmax temperature over −wOBA-against (lower ⇒ favor best arms)
+        "min_relievers": 3,       # need this many known relievers, else season aggregate
+        "lookback_days": 2,       # recent days scanned for fatigue
+        "b2b_penalty": 0.15,      # pitched both of the last 2 days ⇒ likely down today
+        "day1_penalty": 0.60,     # pitched yesterday only
+        "day2_penalty": 0.90,     # pitched 2 days ago only
+        "starter_gs_frac": 0.5,   # season gamesStarted/games ≥ this ⇒ treat as a starter, exclude
+    },
     "live": {
         "statsapi_base": "https://statsapi.mlb.com/api/v1",
         "schedule_hydrate": "probablePitcher(note),lineups,team,linescore",

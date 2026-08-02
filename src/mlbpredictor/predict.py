@@ -28,12 +28,17 @@ from .simulate import TeamPack, precompute_matchups, simulate_game
 _CLIP = 1e-3
 
 
-def _platoon_pairs(ps, lineup, starter_id, opp_team):
+def _platoon_pairs(ps, lineup, starter_id, opp_team, bullpen_vec=None):
     """Per-batter ``(batter_vec, pitcher_vec)`` pairs vs the starter (platoon-resolved)
-    and vs the bullpen (platoon-neutral, since a bullpen is mixed-handed)."""
+    and vs the bullpen (platoon-neutral, since a bullpen is mixed-handed).
+
+    ``bullpen_vec`` overrides the season-aggregate pen with a specific-reliever vector
+    (live availability + fatigue); ``None`` keeps ``ps.bullpen(opp_team)``.
+    """
     pt = throws_of(starter_id)
     sp = [(ps.batter(b, vs=pt), ps.pitcher(starter_id, vs=effective_bats(b, pt))) for b in lineup]
-    bp = [(ps.batter(b), ps.bullpen(opp_team)) for b in lineup]
+    bull = bullpen_vec if bullpen_vec is not None else ps.bullpen(opp_team)
+    bp = [(ps.batter(b), bull) for b in lineup]
     return sp, bp
 
 
@@ -60,6 +65,7 @@ class Predictor:
     def predict_game(self, home_team: str, away_team: str, home_sp: str, away_sp: str,
                      home_lineup: list[str], away_lineup: list[str],
                      park: str | None = None, date=None, lineup_confirmed: bool = False,
+                     bullpen_vectors: dict | None = None,
                      n_sims: int | None = None, seed: int | None = None) -> GamePrediction:
         full_cfg = load_config()
         cfg = full_cfg["simulation"]
@@ -78,9 +84,11 @@ class Predictor:
         smax = int(cfg["starter_max_batters"])
         tto = tuple(cfg.get("tto_factors", (1.0,)))
 
-        # away bats vs home pitching; home bats vs away pitching (platoon-resolved)
-        a_sp, a_bp = _platoon_pairs(ps, away_lineup, home_sp, home_team)
-        h_sp, h_bp = _platoon_pairs(ps, home_lineup, away_sp, away_team)
+        # away bats vs home pitching; home bats vs away pitching (platoon-resolved).
+        # A supplied bullpen vector (live availability + fatigue) overrides the season pen.
+        bv = bullpen_vectors or {}
+        a_sp, a_bp = _platoon_pairs(ps, away_lineup, home_sp, home_team, bv.get(home_team))
+        h_sp, h_bp = _platoon_pairs(ps, home_lineup, away_sp, away_team, bv.get(away_team))
         away_pack = TeamPack(*precompute_matchups(a_sp, a_bp, lg, pf, tto_factors=tto), smax)
         home_pack = TeamPack(*precompute_matchups(h_sp, h_bp, lg, pf, tto_factors=tto), smax)
         res = simulate_game(away_pack, home_pack, n_sims=n_sims,

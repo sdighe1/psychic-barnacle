@@ -53,6 +53,19 @@ simulation:
   extra_innings_ghost_runner: true
   random_seed: 0
 
+bullpen:
+  # Build each team's bullpen from the specific relievers available today (statsapi
+  # active roster), quality-weighted and fatigue-adjusted, instead of the season
+  # aggregate. Falls back to the season aggregate offline or on any fetch failure.
+  use_live_relievers: true
+  quality_temp: 0.06        # softmax temperature over -wOBA-against (lower = favor the best arms)
+  min_relievers: 3          # need at least this many known relievers, else the season aggregate
+  lookback_days: 2          # recent days scanned for fatigue
+  b2b_penalty: 0.15         # pitched both of the last 2 days -> likely unavailable today
+  day1_penalty: 0.60        # pitched yesterday only
+  day2_penalty: 0.90        # pitched 2 days ago only
+  starter_gs_frac: 0.5      # season gamesStarted/games >= this -> a starter (excluded from the pen)
+
 live:
   statsapi_base: "https://statsapi.mlb.com/api/v1"
   # Hydrations for the schedule endpoint (probable pitchers + posted lineups).
