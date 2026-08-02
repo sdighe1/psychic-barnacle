@@ -195,6 +195,27 @@ games:
    a calibrated moneyline; the simulator is then **reweighted** to that probability so all
    outputs agree (`predict.py`).
 
+### Modeling refinements
+
+On top of the base pipeline, four refinements sharpen the true-talent inputs and the
+simulated score/prop distributions (the moneyline stays Elo-anchored, so most of the gain
+shows up in totals, props and the High-confidence tier rather than in win%):
+
+- **Times-through-order penalty** (`simulate.py`) — a starter is precomputed at three
+  matchup strengths and worsens each pass through the lineup (`simulation.tto_factors`,
+  centered so a ~6-inning start ≈ the projection).
+- **Platoon splits** (`ids.py`, `retrosheet.py`, `projections.py`) — every PA is split by
+  handedness (batter vs LHP/RHP, pitcher vs LHB/RHB; switch hitters bat opposite the arm)
+  from the Retrosheet biofile; each split is a regressed nudge off the player's overall rate.
+- **Specific bullpens + fatigue** (`bullpen.py`, `livedata.py`) — when live, each team's pen
+  is built from the **relievers actually on today's active roster**, quality-weighted and
+  down-weighted for arms used the last day or two, instead of the season aggregate
+  (`bullpen.*`). Falls back to the aggregate offline.
+- **Statcast de-luck** (`statcast.py`, *optional*) — the regressed gap between a player's
+  actual and expected wOBA (Baseball Savant xwOBA) nudges their projection toward contact
+  quality, stripping BABIP luck. Off by default; needs `baseballsavant.mlb.com` whitelisted,
+  then set `statcast.enabled: true`.
+
 ## Project structure
 
 ```
@@ -204,6 +225,7 @@ config/slate.example.yaml      manual slate template
 scripts/train_mlb.py           backtest + fit + save model & metrics
 scripts/predict_today.py       the morning slate run -> outputs/predictions_*.json
 src/mlbpredictor/              data, projections, matchup, simulate, ratings, models/, predict
+                               bullpen (live pens), statcast (xwOBA de-luck), freshen, livedata
 tests/                         pytest unit + integration tests
 outputs/                       committed model + metrics + calibration + latest predictions
 ```
