@@ -22,7 +22,8 @@ from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 
-from .scoring import STAT_COLUMNS
+from .league import normalize_position
+from .scoring import OVERRIDE_COLUMN, STAT_COLUMNS, project_points
 
 # Recency weights, newest first (extended/truncated to the seasons available).
 DEFAULT_RECENCY = [0.6, 0.3, 0.1]
@@ -158,3 +159,81 @@ def build_projections(
         parts.append(out[out["position"] == pos].sort_values("_pts", ascending=False).head(n))
     out = pd.concat(parts, ignore_index=True).drop(columns="_pts")
     return out
+
+
+# --------------------------------------------------------------------------- #
+# Fuse expert-consensus rankings with model magnitudes
+# --------------------------------------------------------------------------- #
+FP_KEEP_PER_POS = {"QB": 40, "RB": 70, "WR": 80, "TE": 40, "K": 32, "DST": 32}
+_SKILL = ("QB", "RB", "WR", "TE")
+
+
+def _fp_id(name: str, pos: str) -> str:
+    from .providers import normalize_name
+    return f"{pos}:{normalize_name(name)}"
+
+
+def anchor_to_rankings(
+    model_proj: pd.DataFrame,
+    fp_ranks: pd.DataFrame,
+    kdst_baseline: pd.DataFrame,
+    keep_per_pos: Optional[Dict[str, int]] = None,
+) -> pd.DataFrame:
+    """Fuse FantasyPros consensus **ordering** with model **magnitudes**.
+
+    For each position the players are taken in FantasyPros ECR order and given
+    the model's projected stat line at the same positional rank (a stat-line
+    "curve"), extrapolated with mild decay past the model's depth. The result
+    honours the best-available ordering, keeps realistic magnitudes, includes
+    rookies/newcomers the model never saw, and -- being a stat line -- still
+    re-scores for any format. K/D-ST use the curated baseline magnitudes in
+    FantasyPros order.
+    """
+    keep_per_pos = keep_per_pos or FP_KEEP_PER_POS
+    stat_cols = STAT_COLUMNS
+
+    # model stat-line curves per skill position, best -> worst
+    model = model_proj.copy()
+    model["_pts"] = project_points(model, "half_ppr")
+    curves = {
+        pos: model[model["position"] == pos].sort_values("_pts", ascending=False)[stat_cols + ["proj_games"]].reset_index(drop=True)
+        for pos in _SKILL
+    }
+
+    rows = []
+    for pos in _SKILL:
+        curve = curves.get(pos)
+        if curve is None or curve.empty:
+            continue
+        fp_pos = (fp_ranks[fp_ranks["position"] == pos]
+                  .sort_values("ecr").head(keep_per_pos.get(pos, 60)).reset_index(drop=True))
+        depth = len(curve)
+        for k, r in fp_pos.iterrows():
+            line = curve.iloc[min(k, depth - 1)]
+            decay = 0.97 ** max(0, k - (depth - 1))
+            row = {c: float(line[c]) * decay for c in stat_cols}
+            row["proj_games"] = float(line["proj_games"])
+            row.update({"player_id": _fp_id(r["player"], pos), "player": r["player"],
+                        "position": pos, "team": str(r.get("team", "") or ""), "age": np.nan,
+                        OVERRIDE_COLUMN: np.nan, "source": "fp_ecr+nflverse", "ecr": float(r["ecr"])})
+            rows.append(row)
+
+    # K / D-ST: curated magnitudes, FantasyPros order
+    kbase = kdst_baseline.copy()
+    kbase["position"] = kbase["position"].map(normalize_position)
+    for pos in ("K", "DST"):
+        mags = kbase.loc[kbase["position"] == pos, "proj_points"].sort_values(ascending=False).to_numpy()
+        if len(mags) == 0:
+            continue
+        fp_pos = (fp_ranks[fp_ranks["position"] == pos]
+                  .sort_values("ecr").head(keep_per_pos.get(pos, 32)).reset_index(drop=True))
+        for k, r in fp_pos.iterrows():
+            pts = float(mags[min(k, len(mags) - 1)]) * (0.97 ** max(0, k - (len(mags) - 1)))
+            row = {c: 0.0 for c in stat_cols}
+            row.update({"proj_games": 17.0, "player_id": _fp_id(r["player"], pos),
+                        "player": r["player"], "position": pos, "team": str(r.get("team", "") or ""),
+                        "age": np.nan, OVERRIDE_COLUMN: pts, "source": "fp_ecr+kdst",
+                        "ecr": float(r["ecr"])})
+            rows.append(row)
+
+    return pd.DataFrame(rows)

@@ -170,8 +170,16 @@ DOLLAR_COLS = {
 DISPLAY_RENAME = {
     "overall_rank": "#", "player": "Player", "position": "Pos", "team": "Tm",
     "tier": "Tier", "proj_points": "Proj", "pos_rank": "PosRk", "why": "Why",
-    "rec_score": "Score", "drafted_by": "By", **DOLLAR_COLS,
+    "rec_score": "Score", "drafted_by": "By", "ecr": "FP", **DOLLAR_COLS,
 }
+
+
+def ranking_source_line(meta: dict) -> str:
+    """Human-readable description of where the numbers come from."""
+    if meta.get("ranking_source") == "fantasypros_ecr":
+        return (f"rankings: **FantasyPros** expert consensus (scraped {meta.get('fp_scrape_date','?')}) · "
+                f"point magnitudes: nflverse")
+    return f"projections: nflverse model (data through {meta.get('data_through_season','?')})"
 
 
 def _fmt_board(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
@@ -242,7 +250,7 @@ def draft_board_tab(ds: DraftState) -> None:
         needs = set(ds.open_starter_positions())
         view = view[view["position"].isin(needs)]
 
-    cols = ["overall_rank", "player", "position", "team", "tier", "proj_points",
+    cols = ["overall_rank", "player", "position", "team", "ecr", "tier", "proj_points",
             "optimal_dollar", "expected_dollar", "max_bid"]
     if show_drafted:
         cols += ["drafted_by", "draft_price"]
@@ -250,6 +258,7 @@ def draft_board_tab(ds: DraftState) -> None:
         _fmt_board(view.sort_values("overall_rank"), cols),
         hide_index=True, use_container_width=True, height=520,
         column_config={
+            "FP": st.column_config.NumberColumn(format="%.1f", help="FantasyPros positional consensus rank"),
             "Proj": st.column_config.NumberColumn(format="%.1f"),
             "Optimal $": st.column_config.NumberColumn(format="$%d"),
             "Expected $": st.column_config.NumberColumn(format="$%d"),
@@ -278,11 +287,12 @@ def recommendations_tab(ds: DraftState) -> None:
     if recs.empty:
         st.info("No affordable targets — you may be out of budget or roster space.")
         return
-    cols = ["player", "position", "team", "tier", "proj_points",
+    cols = ["player", "position", "team", "ecr", "tier", "proj_points",
             "optimal_dollar", "expected_dollar", "suggested_bid", "max_bid", "rec_score", "why"]
     st.dataframe(
         _fmt_board(recs, cols), hide_index=True, use_container_width=True, height=560,
         column_config={
+            "FP": st.column_config.NumberColumn(format="%.1f", help="FantasyPros positional consensus rank"),
             "Proj": st.column_config.NumberColumn(format="%.1f"),
             "Optimal $": st.column_config.NumberColumn(format="$%d"),
             "Expected $": st.column_config.NumberColumn(format="$%d"),
@@ -374,26 +384,32 @@ def model_card_tab(meta: dict) -> None:
     if not meta:
         st.info("Run `python scripts/build_projections.py` to generate projections.")
         return
+    is_fp = meta.get("ranking_source") == "fantasypros_ecr"
     c = st.columns(3)
-    c[0].metric("Data through", f"{meta.get('data_through_season','?')} season")
-    c[1].metric("Projecting", f"{meta.get('target_season','?')} season")
+    c[0].metric("Ranking source", "FantasyPros" if is_fp else "nflverse model")
+    c[1].metric("Scraped" if is_fp else "Data through",
+                meta.get("fp_scrape_date") if is_fp else f"{meta.get('data_through_season','?')} season")
     c[2].metric("Players", meta.get("n_players", "?"))
+    st.markdown("**How the numbers are built:** " + ranking_source_line(meta) + ".")
+    if is_fp:
+        st.markdown(
+            "Player **ordering** comes from FantasyPros' expert-consensus rankings (ECR) — "
+            "historically among the most accurate free draft signals, and current for the "
+            "upcoming season (rookies, new teams, injuries included). Realistic point "
+            "**magnitudes** are supplied by the nflverse history model and fused onto the "
+            "consensus order, so every value re-prices when you switch scoring format.")
     acc = meta.get("accuracy") or {}
     if acc:
-        st.markdown(
-            f"**Backtest** (projecting the {acc.get('test_season')} season from earlier "
-            f"data, top {acc.get('n')} players): MAE **{acc.get('mae')}** pts · "
-            f"rank-corr **{acc.get('rank_corr')}**.")
-        pm = acc.get("pos_mae") or {}
-        if pm:
-            st.caption("Per-position MAE: " + " · ".join(f"{k} {v}" for k, v in pm.items()))
-    st.markdown(
-        f"**Sources:** {', '.join(meta.get('sources', []))} "
-        f"(weights: {meta.get('source_weights', {})}). Built from open **nflverse** data; "
-        "seasons " + ", ".join(map(str, meta.get("seasons_used", []))) + ".")
-    st.info("This is a data-driven **baseline**. For your live draft, import current-season "
-            "projections from your most-trusted source (sidebar → Projections) — matched "
-            "players are overridden and new players added. Kicker/D-ST are a curated baseline.")
+        st.caption(
+            f"Magnitude-model backtest (projecting {acc.get('test_season')} from earlier data, "
+            f"top {acc.get('n')}): MAE {acc.get('mae')} pts · rank-corr {acc.get('rank_corr')}. "
+            "Seasons used: " + ", ".join(map(str, meta.get("seasons_used", []))) + ".")
+    st.info("**Want an even more specific source?** Import a projections CSV (sidebar → "
+            "Projections) — e.g. a FantasyPros/PFF/ESPN export or your own — matched players "
+            "override, new players are added. Note: this environment's network policy blocks "
+            "live provider sites, so numbers refresh from the open FantasyPros GitHub mirror "
+            "via `python scripts/build_projections.py`; an org admin can allowlist provider "
+            "hosts for live auction values. Kicker/D-ST use a curated baseline in FantasyPros order.")
 
 
 # --------------------------------------------------------------------------- #
@@ -418,7 +434,7 @@ def main() -> None:
     st.caption(
         f"{scoring.FORMAT_LABELS[league.scoring_format]} · {league.teams} teams · "
         f"${league.budget} budget · {league.roster_size} roster spots · "
-        f"baseline from NFL data through {meta.get('data_through_season', '?')}"
+        + ranking_source_line(meta)
         + ("  ·  📥 imported projections active" if st.session_state.get("custom_proj") is not None else "")
     )
 

@@ -1,5 +1,8 @@
 {
   "generated": "2026-08-29",
+  "ranking_source": "fantasypros_ecr",
+  "fp_scrape_date": "2026-08-28",
+  "magnitude_source": "nflverse",
   "data_through_season": 2024,
   "target_season": 2025,
   "seasons_used": [
@@ -13,7 +16,7 @@
   "source_weights": {
     "history": 1.0
   },
-  "n_players": 308,
+  "n_players": 294,
   "accuracy": {
     "test_season": 2024,
     "n": 175,

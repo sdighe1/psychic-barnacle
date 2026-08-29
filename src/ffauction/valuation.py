@@ -20,6 +20,12 @@ import pandas as pd
 from . import scoring
 from .league import FLEX_ELIGIBLE, LeagueSettings, normalize_position
 
+# Kicker and team defense have a real projected-points spread but the auction
+# market pays ~$1 for them regardless (the spread is unpredictable). Excluding
+# them from the dollar pool keeps their value at $1 and lets skill players
+# absorb that money -- matching how auctions actually price these positions.
+STREAM_POSITIONS = ("K", "DST")
+
 
 # --------------------------------------------------------------------------- #
 # Replacement levels
@@ -103,8 +109,10 @@ def compute_values(df: pd.DataFrame, league: LeagueSettings) -> pd.DataFrame:
     out["vorp"] = (out["proj_points"] - out["replacement"]).round(2)
 
     discretionary = league.total_money - league.total_roster_spots  # reserve $1/spot
-    dpp = _dollar_per_point(out["vorp"].to_numpy(), discretionary, league.total_roster_spots)
-    out["optimal_dollar"] = np.rint(_dollars(out["vorp"].to_numpy(), dpp)).astype(int)
+    pool = ~out["position"].isin(STREAM_POSITIONS)
+    dpp = _dollar_per_point(out.loc[pool, "vorp"].to_numpy(), discretionary, league.total_roster_spots)
+    dollars = np.rint(_dollars(out["vorp"].to_numpy(), dpp))
+    out["optimal_dollar"] = np.where(pool.to_numpy(), dollars, 1).astype(int)
 
     out["tier"] = assign_tiers(out)
     # Rank by auction VALUE (VORP), not raw points, so positional scarcity is
@@ -137,10 +145,12 @@ def live_expected_prices(
         return pd.Series(np.maximum(1, values["optimal_dollar"]), index=values.index)
 
     discretionary = remaining_money - remaining_spots  # keep $1 per open spot
-    avail_vorp = values.loc[~is_drafted, "vorp"].to_numpy()
-    dpp = _dollar_per_point(avail_vorp, discretionary, remaining_spots)
+    pool = ~values["position"].isin(STREAM_POSITIONS)
+    avail_pool = (~is_drafted) & pool.to_numpy()
+    dpp = _dollar_per_point(values.loc[avail_pool, "vorp"].to_numpy(), discretionary, remaining_spots)
 
-    prices = np.rint(_dollars(values["vorp"].to_numpy(), dpp)).astype(float)
+    prices = np.rint(_dollars(values["vorp"].to_numpy(), dpp))
+    prices = np.where(pool.to_numpy(), prices, 1).astype(float)
     return pd.Series(prices, index=values.index)
 
 

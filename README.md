@@ -57,30 +57,47 @@ switching scoring format re-prices the whole board instantly.
 
 ## Where the projections come from
 
-The baseline is **built from open NFL data** (nflverse via `nfl_data_py`): recent
-seasonal stats are turned into recency-weighted per-game rates, regressed toward
-the positional mean, adjusted by a position/age curve, and scaled by projected
-games. Kicker and D/ST — which aren't in the offensive feed and go for ~$1 in
-auctions anyway — come from a small curated baseline (`data/kdst_baseline.csv`).
+The board uses the **best draft signal reachable from this environment**:
+**FantasyPros expert-consensus rankings (ECR)** — historically among the most
+accurate free sources, and current for the upcoming season (rookies, new teams
+and injuries included). Because FantasyPros publishes *rankings*, not points, we
+fuse two things:
 
-Rebuild any time (uses the latest seasons available upstream):
+- **Ordering** — FantasyPros redraft positional ECR, pulled from the open
+  DynastyProcess/ffverse GitHub mirror (the same source `nflreadr::load_ff_rankings()`
+  uses), refreshed daily through the offseason.
+- **Point magnitudes** — a model built from open NFL history (nflverse via
+  `nfl_data_py`): recency-weighted per-game rates, regressed to the positional
+  mean, age-adjusted, scaled by projected games — transplanted onto the consensus
+  order at each positional rank.
+
+The result honors the best-available ranking *and* has realistic, format-flexible
+point spreads (Standard/Half/PPR all re-score live). Kicker and D/ST — which go
+for ~$1 in auctions — use a curated baseline (`data/kdst_baseline.csv`) placed in
+FantasyPros order, and are held at $1 so real money flows to skill players.
+
+Rebuild any time:
 
 ```bash
-python scripts/build_projections.py
+python scripts/build_projections.py                 # FantasyPros-anchored (default)
+python scripts/build_projections.py --no-fantasypros # nflverse model only
 ```
 
-This writes `outputs/projections.csv` and `outputs/meta.json` (data vintage +
-a **backtest**: it re-projects the most recent completed season from earlier data
-and scores it — see the app's **Model Card** tab).
+This writes `outputs/projections.csv` and `outputs/meta.json` (ranking source +
+scrape date + a magnitude-model backtest — see the app's **Model Card** tab).
 
-### Bring your own / the most accurate provider
+> **Network note.** This environment's egress policy blocks live provider sites
+> (fantasypros.com, ESPN, Sleeper return 403 policy denials), so the app can't
+> pull live auction values / AAV directly — it uses the reachable FantasyPros
+> **GitHub mirror** instead. An org admin can allowlist those hosts if you want
+> live AAV; otherwise, import a downloaded export (below).
 
-A model is only a baseline. To draft on the **most accurate available numbers**,
-import a projection CSV from your most-trusted source — FantasyPros' consensus
-(historically among the most accurate), PFF, ESPN, or your own — via the
-sidebar (**Projections → Import**). Columns are auto-detected; matched players
-override the baseline and new players are added. You can also blend multiple
-sources into an **accuracy-weighted consensus** at build time:
+### Bring your own / an even more specific source
+
+Import a projection CSV from your most-trusted source — a FantasyPros/PFF/ESPN
+export or your own — via the sidebar (**Projections → Import**). Columns are
+auto-detected; matched players override, new players are added. You can also blend
+multiple sources into an **accuracy-weighted consensus** at build time:
 
 ```bash
 python scripts/build_projections.py --provider fantasypros=fp.csv --provider pff=pff.csv
@@ -92,9 +109,11 @@ Each source is weighted by its backtested accuracy (lower error → more weight)
 
 1. **Data** (`src/ffauction/data.py`) — seasonal NFL stats + rosters from
    nflverse, normalised to a stat-line schema.
-2. **Projections** (`projections.py`) — recency-weighted, regressed, age-adjusted
-   baseline for the upcoming season.
-3. **Providers & accuracy** (`providers.py`, `accuracy.py`) — import/normalise
+2. **Rankings** (`fantasypros.py`) — current FantasyPros expert-consensus ranks
+   from the reachable GitHub mirror.
+3. **Projections** (`projections.py`) — recency-weighted, regressed, age-adjusted
+   magnitude model, fused onto the FantasyPros consensus order (`anchor_to_rankings`).
+4. **Providers & accuracy** (`providers.py`, `accuracy.py`) — import/normalise
    external projections and blend sources weighted by backtested accuracy.
 4. **Scoring** (`scoring.py`) — ESPN Standard / Half-PPR / Full-PPR from stat lines.
 5. **Valuation** (`valuation.py`) — replacement levels (+FLEX), VORP, optimal
@@ -109,10 +128,10 @@ Each source is weighted by its backtested accuracy (lower error → more weight)
 app.py                       Streamlit auction dashboard
 config/league.yaml           editable league / scoring / roster config
 data/kdst_baseline.csv       curated kicker & D/ST baseline
-scripts/build_projections.py rebuild projections (+ optional provider blend)
-src/ffauction/               scoring, valuation, draft, projections, data, ...
-outputs/projections.csv      committed baseline projections (app runs on clone)
-outputs/meta.json            data vintage + backtest accuracy
+scripts/build_projections.py rebuild projections (FantasyPros-anchored + blend)
+src/ffauction/               scoring, valuation, draft, projections, fantasypros, ...
+outputs/projections.csv      committed projections (app runs on clone)
+outputs/meta.json            ranking source + scrape date + backtest accuracy
 tests/                       pytest unit + app-smoke tests
 ```
 
@@ -125,9 +144,13 @@ pytest -q
 
 ## Notes & credits
 
+- Rankings: **FantasyPros** expert consensus, via the open
+  [DynastyProcess](https://github.com/dynastyprocess/data) / ffverse GitHub mirror
+  (the source `nflreadr::load_ff_rankings()` uses). Appropriate for a personal
+  draft tool; the **Model Card** tab shows the scrape date.
 - NFL data: [nflverse](https://github.com/nflverse) via
-  [`nfl_data_py`](https://github.com/nflverse/nfl_data_py) (open data). In this
-  environment the freshest season available upstream is used automatically; the
-  **Model Card** tab shows the exact vintage.
-- Projections are a data-driven **baseline** for analysis and entertainment, not
-  betting advice — import current-season numbers for your live draft.
+  [`nfl_data_py`](https://github.com/nflverse/nfl_data_py) (open data), used for
+  point magnitudes and the backtest.
+- Projections are for analysis and entertainment, not betting advice. Auction
+  market values (AAV) are model-derived (live AAV hosts are blocked here) — import
+  a provider export for exact market numbers.

@@ -25,13 +25,13 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from ffauction import accuracy, data, projections, providers  # noqa: E402
+from ffauction import accuracy, data, fantasypros, projections, providers  # noqa: E402
 from ffauction.paths import KDST_BASELINE_PATH, META_PATH, PROJECTIONS_PATH  # noqa: E402
 from ffauction.scoring import OVERRIDE_COLUMN, STAT_COLUMNS  # noqa: E402
 
 FULL_COLUMNS = (
     ["player_id", "player", "position", "team", "age", "proj_games"]
-    + STAT_COLUMNS + [OVERRIDE_COLUMN, "source"]
+    + STAT_COLUMNS + [OVERRIDE_COLUMN, "source", "ecr"]
 )
 
 
@@ -55,6 +55,8 @@ def main() -> int:
     ap.add_argument("--provider", action="append", default=[], metavar="name=path.csv",
                     help="blend a provider projection CSV (accuracy-weighted); repeatable")
     ap.add_argument("--seasons", type=int, default=3, help="seasons of history for the baseline")
+    ap.add_argument("--no-fantasypros", action="store_true",
+                    help="skip FantasyPros ECR anchoring; ship the model-only projection")
     args = ap.parse_args()
 
     print("Locating latest available NFL season from nflverse ...")
@@ -93,7 +95,21 @@ def main() -> int:
     else:
         skill = base
 
-    full = pd.concat([skill, load_kdst()], ignore_index=True)
+    # Fuse with FantasyPros expert-consensus rankings (best reachable draft
+    # signal) when available; otherwise ship the model-only projection.
+    ranking_source = "model-only"
+    fp_scrape_date = None
+    fp = None if args.no_fantasypros else fantasypros.try_load_fantasypros_ecr()
+    if fp is not None:
+        fp_ranks, fp_scrape_date = fp
+        full = projections.anchor_to_rankings(skill, fp_ranks, pd.read_csv(KDST_BASELINE_PATH))
+        ranking_source = "fantasypros_ecr"
+        print(f"  FantasyPros ECR loaded (scraped {fp_scrape_date}); "
+              f"anchored {len(full)} players to consensus order.")
+    else:
+        full = pd.concat([skill, load_kdst()], ignore_index=True)
+        print("  FantasyPros ECR unavailable (blocked/offline) -> model-only projection.")
+
     for c in FULL_COLUMNS:
         if c not in full.columns:
             full[c] = np.nan
@@ -101,11 +117,14 @@ def main() -> int:
     full.to_csv(PROJECTIONS_PATH, index=False)
     print(f"Wrote {PROJECTIONS_PATH}  ({len(full)} players)")
 
-    print(f"Backtesting model on {latest} (trained on earlier seasons) ...")
+    print(f"Backtesting magnitude model on {latest} (trained on earlier seasons) ...")
     metrics = accuracy.backtest_model(history, latest)
 
     meta = {
         "generated": date.today().isoformat(),
+        "ranking_source": ranking_source,           # fantasypros_ecr | model-only
+        "fp_scrape_date": fp_scrape_date,
+        "magnitude_source": "nflverse",
         "data_through_season": latest,
         "target_season": target,
         "seasons_used": window,
