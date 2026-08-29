@@ -1,0 +1,31 @@
+{
+  "generated": "2026-08-29",
+  "data_through_season": 2024,
+  "target_season": 2025,
+  "seasons_used": [
+    2024,
+    2023,
+    2022
+  ],
+  "sources": [
+    "history"
+  ],
+  "source_weights": {
+    "history": 1.0
+  },
+  "n_players": 308,
+  "accuracy": {
+    "test_season": 2024,
+    "n": 175,
+    "mae": 60.59,
+    "rmse": 76.98,
+    "rank_corr": 0.489,
+    "pos_mae": {
+      "QB": 86.71,
+      "RB": 64.48,
+      "TE": 34.29,
+      "WR": 47.6
+    }
+  },
+  "scoring_note": "ESPN Standard/Half-PPR/Full-PPR (chosen in-app)"
+}

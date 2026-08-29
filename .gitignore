@@ -9,12 +9,15 @@ dist/
 venv/
 .env
 
-# Data cache (downloaded at runtime)
+# Downloaded data caches (nflverse pulls land here at build time), but keep the
+# committed curated kicker / D-ST baseline.
 data/*.csv
+!data/kdst_baseline.csv
 
-# Trained artifacts under outputs/ (model.joblib, metrics.json,
-# predictions_2026.json, calibration.png) are small and committed so the
-# dashboard works immediately after cloning. Regenerate with scripts/train.py.
+# Committed artifacts under outputs/ (projections.csv, meta.json) are small and
+# checked in so the app runs immediately after cloning. Regenerate with
+# scripts/build_projections.py. The live draft autosave is per-session, not committed.
+outputs/draft_state.json
 
 # OS / editor
 .DS_Store

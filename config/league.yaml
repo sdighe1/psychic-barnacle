@@ -1,0 +1,34 @@
+# ---------------------------------------------------------------------------
+# League configuration for the auction-draft assistant.
+# These defaults match the user's ESPN league (from the roster screenshot).
+# Everything here is also editable live in the app sidebar.
+# ---------------------------------------------------------------------------
+
+teams: 10          # number of teams in the league
+budget: 200        # auction budget per team (dollars)
+
+# Scoring format: standard (0 PPR) | half_ppr (0.5) | ppr (1.0)
+scoring_format: half_ppr
+
+# Starting-lineup slots. FLEX is filled by RB/WR/TE.
+starters:
+  QB: 1
+  RB: 2
+  WR: 2
+  TE: 1
+  FLEX: 1
+  DST: 1
+  K: 1
+
+bench: 4           # bench spots (IR is not drafted, so not counted here)
+# -> 13 draftable roster spots per team (9 starters + 4 bench).
+
+# Maximum rosterable players per position (ESPN caps). The draft board will not
+# let you (or recommend that you) exceed these.
+position_max:
+  QB: 4
+  RB: 8
+  WR: 8
+  TE: 3
+  DST: 3
+  K: 3

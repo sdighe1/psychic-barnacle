@@ -1,9 +1,11 @@
-numpy>=1.26
-pandas>=2.0
-scipy>=1.11
-scikit-learn>=1.3
-matplotlib>=3.7
+# App runtime (the committed outputs/projections.csv means the app runs
+# immediately after cloning -- no network needed).
 streamlit>=1.30
-requests>=2.31
+pandas>=1.5
+numpy>=1.24
 pyyaml>=6.0
-joblib>=1.3
+requests>=2.31
+
+# Only needed to REBUILD projections from scratch (scripts/build_projections.py);
+# pulls historical stats from nflverse. The app itself does not import it.
+nfl_data_py>=0.3.1

@@ -1,110 +1,119 @@
-# 🏆 World Cup 2026 Match Predictor
+# 🏈 Fantasy Football Auction Draft Assistant
 
-A football-specific machine-learning model that predicts international match
-outcomes — **projected scoreline + win/draw/loss probabilities + a confidence
-level** — and Monte-Carlo simulates the **2026 FIFA World Cup** to produce
-championship odds. It ships with an interactive **Streamlit dashboard**.
-
-The model is trained on ~49,000 internationals (1872 → today, auto-updated) and
-its accuracy is proven by an out-of-sample backtest that includes the 2018 and
-2022 World Cups.
-
-<!-- Screenshots: run the dashboard (below) to view. -->
+An interactive **Streamlit** app for a fantasy football **auction** draft. For
+every player it shows a **ranking**, an **optimal price** (model value), a live
+**expected price** (market value that adjusts for draft inflation) and your
+**max bid** — then lets you **check off drafted players** to keep the board
+clean and **recommends who to target next** based on the roster you've already
+built. Uses **ESPN scoring** (defaults to **Half-PPR**; Standard and Full-PPR
+are one click away).
 
 ## What it does
 
-- **Predict any match** — pick two teams, get the projected score, a scoreline
-  probability heatmap, W/D/L probabilities, and a confidence band.
-- **2026 title odds** — for every surviving team, the probability of reaching
-  each remaining round and winning the trophy (Monte-Carlo over the bracket).
-- **Live bracket & results** — the current tournament state is reconstructed
-  automatically from the results data (who's out, who's alive, group standings).
-- **Model card** — the full backtest metrics table and a calibration curve.
-
-## How accurate is it?
-
-Backtest on an **untouched test set** (all matches from 2018 onward; component
-models see only earlier data). Lower RPS / log-loss / Brier is better.
-
-| Model | RPS ↓ | Log-loss ↓ | Brier ↓ | Accuracy ↑ |
-|---|---|---|---|---|
-| Base rate (no skill) | 0.228 | 1.051 | 0.634 | 47.8% |
-| Elo (logistic) | 0.170 | 0.874 | 0.514 | 60.2% |
-| Gradient boosting | 0.171 | 0.873 | 0.513 | 60.1% |
-| Dixon-Coles | 0.180 | 0.903 | 0.532 | 58.4% |
-| **Ensemble (shipped)** | **0.169** | **0.869** | **0.510** | **60.4%** |
-
-On **World Cup matches only** (2018 & 2022, n=216) the ensemble scores RPS 0.191,
-log-loss 0.953, accuracy 58.3%. The ensemble is well-calibrated (see the Model
-Card tab). *(Numbers regenerate whenever you re-run training on fresh data.)*
+- **Value every player** — Value-Based Drafting (VORP) converts projected points
+  into auction dollars that sum to the league's money pool, with proper **FLEX**
+  handling for RB/WR/TE.
+- **Optimal vs. Expected vs. Max** —
+  - **Optimal $**: what a player is worth (model value).
+  - **Expected $**: what they'll actually cost *right now* — recomputed live from
+    the money and value still on the board (auction **inflation**).
+  - **Max bid**: the most you can pay and still legally fill every roster spot.
+- **One-click draft check-off** — log any pick (yours or another team's) with its
+  price; drafted players drop off the board, your budget and roster update, and
+  every remaining price re-inflates.
+- **Roster-aware recommendations** — targets ranked by your open starter slots
+  (scaled by positional scarcity), value (optimal vs. market) and tier scarcity,
+  each with a suggested bid and a one-line reason.
+- **Your team, live** — budget left, average $/open slot, open starter slots,
+  projected starting-lineup points, and a full draft log with position scarcity.
 
 ## Quick start
 
 ```bash
-pip install -r requirements.txt      # numpy, pandas, scipy, scikit-learn, streamlit, …
-
-# (optional) rebuild the model + simulation from the latest data:
-python scripts/train.py              # downloads data, backtests, trains, saves outputs/model.joblib
-python scripts/simulate_wc2026.py    # simulates the 2026 bracket -> outputs/predictions_2026.json
-
-streamlit run app.py                 # launch the dashboard
+pip install -r requirements.txt
+streamlit run app.py
 ```
 
-The trained artifacts under `outputs/` are committed, so `streamlit run app.py`
-works immediately after cloning — the two scripts are only needed to refresh
-against newer results.
+The projection artifact (`outputs/projections.csv`) is committed, so the app
+runs immediately after cloning. During your draft: pick your scoring format and
+league size in the sidebar, then log picks on the **Draft Board** tab and watch
+the **Recommendations** tab adapt to your roster.
+
+## League settings
+
+Defaults match a standard ESPN league and live in `config/league.yaml` (also
+editable in the sidebar):
+
+| Setting | Default |
+|---|---|
+| Teams / budget | 10 / $200 |
+| Starters | QB, RB, RB, WR, WR, TE, **FLEX**, D/ST, K |
+| Bench | 4 → **13 draftable spots** (IR is not drafted) |
+| Position caps | QB 4 · RB 8 · WR 8 · TE 3 · D/ST 3 · K 3 |
+| Scoring | Half-PPR (Standard / Full-PPR selectable) |
+
+Fantasy points are computed from each player's projected **stat line**, so
+switching scoring format re-prices the whole board instantly.
+
+## Where the projections come from
+
+The baseline is **built from open NFL data** (nflverse via `nfl_data_py`): recent
+seasonal stats are turned into recency-weighted per-game rates, regressed toward
+the positional mean, adjusted by a position/age curve, and scaled by projected
+games. Kicker and D/ST — which aren't in the offensive feed and go for ~$1 in
+auctions anyway — come from a small curated baseline (`data/kdst_baseline.csv`).
+
+Rebuild any time (uses the latest seasons available upstream):
+
+```bash
+python scripts/build_projections.py
+```
+
+This writes `outputs/projections.csv` and `outputs/meta.json` (data vintage +
+a **backtest**: it re-projects the most recent completed season from earlier data
+and scores it — see the app's **Model Card** tab).
+
+### Bring your own / the most accurate provider
+
+A model is only a baseline. To draft on the **most accurate available numbers**,
+import a projection CSV from your most-trusted source — FantasyPros' consensus
+(historically among the most accurate), PFF, ESPN, or your own — via the
+sidebar (**Projections → Import**). Columns are auto-detected; matched players
+override the baseline and new players are added. You can also blend multiple
+sources into an **accuracy-weighted consensus** at build time:
+
+```bash
+python scripts/build_projections.py --provider fantasypros=fp.csv --provider pff=pff.csv
+```
+
+Each source is weighted by its backtested accuracy (lower error → more weight).
 
 ## How it works
 
-1. **Data** (`src/wcpredictor/data.py`) — Mart Jürisoo's open
-   [*international results*](https://github.com/martj42/international_results)
-   dataset (results + shootouts), cleaned with a small team-name lineage map and
-   a tournament-importance weighting.
-2. **Elo ratings** (`elo.py`) — a custom, sequential (leak-free) Elo with
-   margin-of-victory and match-importance K-scaling and home advantage.
-3. **Features** (`features.py`) — all computed strictly *as-of* the match: Elo
-   and Elo difference, rolling recent form (goals & points), rest days, venue and
-   importance flags.
-4. **Models** (`models/`)
-   - **Dixon-Coles** time-weighted bivariate Poisson → the full scoreline matrix
-     (projected score & score confidence).
-   - **Gradient boosting** on the engineered features → outcome & goal counts.
-   - **Elo-logistic** and **base-rate** baselines.
-   - **Ensemble** — a log-loss-optimal blend + temperature calibration. The final
-     scoreline is the Dixon-Coles matrix rescaled to the ensemble's (more
-     accurate) W/D/L probabilities, so the score and the odds always agree.
-5. **Tournament simulator** (`tournament.py`) — reconstructs the live knockout
-   state from the data (shootout-aware) and Monte-Carlo plays out the remaining
-   bracket thousands of times.
-
-## "Confidence level" — what it means
-
-Each prediction reports:
-
-- **W/D/L probabilities** and the **most-likely outcome**;
-- a **confidence band** — High (>60%), Medium (45-60%), Low (<45%) — from the top
-  outcome probability;
-- the **most-likely exact scoreline** and its probability, plus the top few
-  scorelines and expected goals.
-
-## The 2026 bracket
-
-A flat results file doesn't encode who-plays-who in *future* rounds, so the
-simulator seeds the surviving teams into a standard bracket by Elo rating by
-default. To forecast the **exact** official bracket, list the real pairings under
-`knockout_order` in `config/wc2026.yaml`. Completed matches are always taken from
-the live data regardless.
+1. **Data** (`src/ffauction/data.py`) — seasonal NFL stats + rosters from
+   nflverse, normalised to a stat-line schema.
+2. **Projections** (`projections.py`) — recency-weighted, regressed, age-adjusted
+   baseline for the upcoming season.
+3. **Providers & accuracy** (`providers.py`, `accuracy.py`) — import/normalise
+   external projections and blend sources weighted by backtested accuracy.
+4. **Scoring** (`scoring.py`) — ESPN Standard / Half-PPR / Full-PPR from stat lines.
+5. **Valuation** (`valuation.py`) — replacement levels (+FLEX), VORP, optimal
+   dollars, live inflation-adjusted expected prices, tiers.
+6. **Draft** (`draft.py`) — draft state, roster/slot logic with caps, max bid,
+   recommendations.
+7. **App** (`app.py`) — the Streamlit dashboard.
 
 ## Project structure
 
 ```
-app.py                      Streamlit dashboard
-config/wc2026.yaml          editable 2026 bracket / host config
-scripts/train.py            train + backtest + save model & metrics
-scripts/simulate_wc2026.py  simulate the tournament -> predictions JSON
-src/wcpredictor/            data, elo, features, models/, predict, tournament, backtest, viz
-tests/                      pytest unit + integration tests
-outputs/                    committed model + metrics + predictions + calibration plot
+app.py                       Streamlit auction dashboard
+config/league.yaml           editable league / scoring / roster config
+data/kdst_baseline.csv       curated kicker & D/ST baseline
+scripts/build_projections.py rebuild projections (+ optional provider blend)
+src/ffauction/               scoring, valuation, draft, projections, data, ...
+outputs/projections.csv      committed baseline projections (app runs on clone)
+outputs/meta.json            data vintage + backtest accuracy
+tests/                       pytest unit + app-smoke tests
 ```
 
 ## Tests
@@ -114,9 +123,11 @@ pip install -r requirements-dev.txt
 pytest -q
 ```
 
-## Data & credits
+## Notes & credits
 
-Match data: [martj42/international_results](https://github.com/martj42/international_results)
-(open data). Modelling builds on Dixon & Coles (1997) and the World Football Elo
-Ratings scheme. This is a statistical model for entertainment and analysis — not
-betting advice.
+- NFL data: [nflverse](https://github.com/nflverse) via
+  [`nfl_data_py`](https://github.com/nflverse/nfl_data_py) (open data). In this
+  environment the freshest season available upstream is used automatically; the
+  **Model Card** tab shows the exact vintage.
+- Projections are a data-driven **baseline** for analysis and entertainment, not
+  betting advice — import current-season numbers for your live draft.

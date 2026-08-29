@@ -1,11 +1,11 @@
-"""World Cup 2026 prediction dashboard (Streamlit).
+"""Fantasy football auction-draft assistant (Streamlit).
 
     streamlit run app.py
 
-Loads the trained model (``outputs/model.joblib``) for live match predictions and
-the precomputed tournament simulation (``outputs/predictions_2026.json``) for the
-title-odds and bracket views. Run ``scripts/train.py`` then
-``scripts/simulate_wc2026.py`` first to generate those artifacts.
+Rankings, an optimal (model) price, a live expected (market, inflation-adjusted)
+price and your max bid for every player -- plus one-click "draft" check-off and
+recommendations that adapt to the roster you have already built. ESPN scoring
+(Standard / Half-PPR / Full-PPR).
 """
 from __future__ import annotations
 
@@ -18,206 +18,422 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from wcpredictor.paths import CALIBRATION_PLOT_PATH, MODEL_PATH, PREDICTIONS_2026_PATH  # noqa: E402
-from wcpredictor.predict import Predictor  # noqa: E402
-from wcpredictor.viz import champion_bar_figure, scoreline_heatmap_figure, wdl_bar_figure  # noqa: E402
+from ffauction import providers, scoring, valuation  # noqa: E402
+from ffauction.draft import DraftState  # noqa: E402
+from ffauction.league import POSITIONS, LeagueSettings, load_league  # noqa: E402
+from ffauction.paths import DRAFT_STATE_PATH, META_PATH, PROJECTIONS_PATH  # noqa: E402
 
-st.set_page_config(page_title="World Cup 2026 Predictor", page_icon="🏆", layout="wide")
+st.set_page_config(page_title="Auction Draft Assistant", page_icon="🏈", layout="wide")
 
 
-@st.cache_resource
-def get_predictor():
-    """Load the trained model; return None if it is missing or unreadable."""
-    if not MODEL_PATH.exists():
-        return None
+# --------------------------------------------------------------------------- #
+# Data loading
+# --------------------------------------------------------------------------- #
+@st.cache_data(show_spinner=False)
+def load_base_projections() -> pd.DataFrame:
+    return pd.read_csv(PROJECTIONS_PATH)
+
+
+@st.cache_data(show_spinner=False)
+def load_meta() -> dict:
+    if META_PATH.exists():
+        return json.loads(META_PATH.read_text())
+    return {}
+
+
+def get_projections() -> pd.DataFrame:
+    """Base projections, with any imported provider overrides applied."""
+    base = load_base_projections().copy()
+    custom = st.session_state.get("custom_proj")
+    if custom is None:
+        return base
+    base = base.set_index("player_id")
+    over = custom.set_index("player_id")
+    cols = [c for c in over.columns if c in base.columns]
+    base.update(over[cols])                       # override matched players
+    new = over[~over.index.isin(base.index)]      # append brand-new players
+    if len(new):
+        base = pd.concat([base, new[[c for c in base.columns if c in new.columns]]])
+    return base.reset_index()
+
+
+# --------------------------------------------------------------------------- #
+# Draft-state helpers (session backed)
+# --------------------------------------------------------------------------- #
+def _init_state() -> None:
+    st.session_state.setdefault("picks", {})
+    st.session_state.setdefault("custom_proj", None)
+
+
+def do_draft(player_id: str, price: int, mine: bool) -> None:
+    st.session_state.picks[str(player_id)] = {"price": int(price), "mine": bool(mine)}
+    _autosave()
+
+
+def do_undo(player_id: str) -> None:
+    st.session_state.picks.pop(str(player_id), None)
+    _autosave()
+
+
+def do_reset() -> None:
+    st.session_state.picks = {}
+    _autosave()
+
+
+def _autosave() -> None:
     try:
-        return Predictor.load()
-    except Exception as exc:  # e.g. library-version mismatch on the pickle
-        st.warning(f"Could not load the trained model ({exc}). "
-                   "Run `python scripts/train.py` to rebuild it.")
-        return None
+        DRAFT_STATE_PATH.write_text(json.dumps({"picks": st.session_state.picks}))
+    except Exception:
+        pass
 
-
-@st.cache_data
-def get_predictions() -> dict | None:
-    if PREDICTIONS_2026_PATH.exists():
-        return json.load(open(PREDICTIONS_2026_PATH))
-    return None
-
-
-def _pct(x) -> str:
-    return f"{x*100:.1f}%"
-
-
-predictor = get_predictor()
-data = get_predictions()
-
-if predictor is None and data is None:
-    st.title("🏆 World Cup 2026 — Match Predictor")
-    st.info("No artifacts found yet. Run `python scripts/train.py` then "
-            "`python scripts/simulate_wc2026.py` to build the model and simulation.")
-    st.stop()
-
-st.title("🏆 World Cup 2026 — Match Predictor")
-trained = predictor.trained_through if predictor else (data or {}).get("trained_through", "")
-sub = f"Model trained through **{trained}**"
-if data:
-    sub += f" · {data.get('n_sims', 0):,} tournament simulations · generated {data.get('generated','')}"
-st.caption(sub)
-
-tab_match, tab_odds, tab_bracket, tab_model = st.tabs(
-    ["🎯 Match Predictor", "🏆 Title Odds", "🗺️ Bracket & Results", "📊 Model Card"])
 
 # --------------------------------------------------------------------------- #
-# Match predictor
+# Sidebar: league settings, budget, import, save/load
 # --------------------------------------------------------------------------- #
-with tab_match:
-  if predictor is None:
-    st.info("Live match prediction needs the trained model. Run `python scripts/train.py`.")
-  else:
-    teams = predictor.teams()
-    alive = data["state"]["alive"] if data else []
-    default_home = "Spain" if "Spain" in teams else teams[0]
-    default_away = "France" if "France" in teams else teams[1]
-    c1, c2, c3 = st.columns([3, 3, 2])
-    home = c1.selectbox("Home / Team A", teams, index=teams.index(default_home))
-    away = c2.selectbox("Away / Team B", teams, index=teams.index(default_away))
-    neutral = c3.checkbox("Neutral venue", value=True,
-                          help="World Cup matches are at neutral venues (except hosts at home).")
+def sidebar_settings(defaults: LeagueSettings) -> LeagueSettings:
+    st.sidebar.header("⚙️ League settings")
+    fmt_options = list(scoring.FORMATS)
+    fmt = st.sidebar.selectbox(
+        "Scoring format", fmt_options,
+        index=fmt_options.index(defaults.scoring_format),
+        format_func=lambda f: scoring.FORMAT_LABELS[f],
+    )
+    c1, c2 = st.sidebar.columns(2)
+    teams = c1.number_input("Teams", min_value=4, max_value=16, value=defaults.teams, step=1)
+    budget = c2.number_input("Budget $", min_value=50, max_value=1000, value=defaults.budget, step=10)
 
-    if home == away:
-        st.warning("Pick two different teams.")
-    else:
-        pred = predictor.predict(home, away, neutral=neutral)
-        i, j = pred.most_likely_score()
-        left, right = st.columns([5, 4])
-        with left:
-            st.markdown(f"### {home} &nbsp; {i} – {j} &nbsp; {away}")
-            fav = pred.favorite
-            fav_name = home if fav == "home" else away if fav == "away" else "Draw"
-            st.markdown(
-                f"**Confidence: {pred.confidence_label}** ({_pct(pred.confidence)}) · "
-                f"favourite: **{fav_name}** · "
-                f"expected goals {pred.exp_home_goals:.2f} – {pred.exp_away_goals:.2f}")
-            st.pyplot(wdl_bar_figure(pred.p_home, pred.p_draw, pred.p_away, home, away), use_container_width=True)
+    with st.sidebar.expander("Roster & caps (edit config/league.yaml)"):
+        starters = " · ".join(f"{k} {v}" for k, v in defaults.starters.items())
+        st.caption(f"**Starters:** {starters}")
+        st.caption(f"**Bench:** {defaults.bench}  →  **{defaults.roster_size} draftable spots**")
+        caps = " · ".join(f"{k}≤{v}" for k, v in defaults.position_max.items())
+        st.caption(f"**Position caps:** {caps}")
 
-            m1, m2, m3 = st.columns(3)
-            m1.metric(f"{home} win", _pct(pred.p_home))
-            m2.metric("Draw", _pct(pred.p_draw))
-            m3.metric(f"{away} win", _pct(pred.p_away))
+    return defaults.with_updates(scoring_format=fmt, teams=int(teams), budget=int(budget))
 
-            st.markdown("**Most likely scorelines**")
-            rows = [{"Score": f"{a}–{b}", "Probability": _pct(p)} for a, b, p in pred.top_scorelines(5)]
-            st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
-        with right:
-            st.pyplot(scoreline_heatmap_figure(pred.score_matrix, home, away), use_container_width=True)
 
-# --------------------------------------------------------------------------- #
-# Title odds
-# --------------------------------------------------------------------------- #
-with tab_odds:
-    if not data:
-        st.info("Run `python scripts/simulate_wc2026.py` to generate tournament odds.")
-    else:
-        odds = pd.DataFrame(data["title_odds"])
-        st.subheader(f"Championship probability — {data['current_round']} onward")
-        left, right = st.columns([3, 4])
-        with left:
-            st.pyplot(champion_bar_figure(odds["team"].tolist(), odds["champion"].tolist()),
-                      use_container_width=True)
-        with right:
-            sizes = data["sizes"]
-            names = data["round_names"]
-            show = odds.copy()
-            disp = pd.DataFrame({"Team": show["team"], "Champion": show["champion"].map(_pct)})
-            for rs in sizes[1:]:  # skip the current round (trivially 100%)
-                col = f"reach_{rs}"
-                if col in show:
-                    disp[f"Reach {names[str(rs)]}"] = show[col].map(_pct)
-            st.dataframe(disp, hide_index=True, use_container_width=True, height=560)
-        st.caption("Estimated by Monte-Carlo simulation of the remaining bracket. "
-                   "Bracket order comes from `config/wc2026.yaml` (Elo-seeded by default — "
-                   "set the real pairings there for a bracket-exact forecast).")
+def sidebar_import(base_proj: pd.DataFrame) -> None:
+    st.sidebar.header("📥 Projections")
+    up = st.sidebar.file_uploader(
+        "Import a projections CSV (FantasyPros / PFF / ESPN / your own)",
+        type=["csv"], key="proj_upload",
+        help="Auto-detects player/pos/team and stat or points columns. Matched "
+             "players override the baseline; new players are added.",
+    )
+    if up is not None and st.sidebar.button("Apply import", use_container_width=True):
+        try:
+            prov = providers.normalize_provider_frame(pd.read_csv(up))
+            prov = providers.match_to_baseline(prov, base_proj)
+            prov["player_id"] = prov["player_id"].where(
+                prov["player_id"].astype(str).str.len() > 0, "IMP_" + prov["name_key"]
+            ).fillna("IMP_" + prov["name_key"])
+            st.session_state.custom_proj = prov
+            st.sidebar.success(f"Imported {len(prov)} players.")
+            st.rerun()
+        except Exception as exc:
+            st.sidebar.error(f"Could not import: {exc}")
+    if st.session_state.get("custom_proj") is not None:
+        if st.sidebar.button("Clear imported projections", use_container_width=True):
+            st.session_state.custom_proj = None
+            st.rerun()
 
-# --------------------------------------------------------------------------- #
-# Bracket & results
-# --------------------------------------------------------------------------- #
-with tab_bracket:
-    if not data:
-        st.info("Run `python scripts/simulate_wc2026.py` to populate this view.")
-    else:
-        state = data["state"]
-        st.subheader(f"Still alive — {state['next_round']} ({len(state['alive'])} teams)")
-        st.write(" · ".join(f"**{t}**" for t in state["alive"]))
 
-        st.subheader(f"Projected {data['current_round']} fixtures")
-        for fx in data["current_round_fixtures"]:
-            p = fx["prediction"]
-            si, sj = p["projected_score"]
-            cols = st.columns([4, 2, 3])
-            cols[0].markdown(f"**{fx['home']} {si} – {sj} {fx['away']}**")
-            cols[1].markdown(f"{p['confidence_label']} ({_pct(p['confidence'])})")
-            cols[2].markdown(
-                f"<span style='color:#2563eb'>{_pct(p['p_home'])}</span> / "
-                f"<span style='color:#9ca3af'>{_pct(p['p_draw'])}</span> / "
-                f"<span style='color:#f59e0b'>{_pct(p['p_away'])}</span>",
-                unsafe_allow_html=True)
+def sidebar_saveload() -> None:
+    st.sidebar.header("💾 Draft")
+    st.sidebar.download_button(
+        "Download draft state", data=json.dumps({"picks": st.session_state.picks}, indent=2),
+        file_name="draft_state.json", mime="application/json", use_container_width=True,
+    )
+    up = st.sidebar.file_uploader("Load draft state", type=["json"], key="draft_upload")
+    if up is not None and st.sidebar.button("Load", use_container_width=True):
+        try:
+            st.session_state.picks = {
+                str(k): {"price": int(v["price"]), "mine": bool(v["mine"])}
+                for k, v in (json.load(up).get("picks") or {}).items()
+            }
+            _autosave()
+            st.rerun()
+        except Exception as exc:
+            st.sidebar.error(f"Bad file: {exc}")
+    if st.sidebar.button("♻️ Reset draft", use_container_width=True):
+        do_reset()
+        st.rerun()
 
-        with st.expander("Group stage standings"):
-            groups = state.get("groups", {})
-            gcols = st.columns(3)
-            for k, (label, standing) in enumerate(groups.items()):
-                with gcols[k % 3]:
-                    st.markdown(f"**Group {label}**")
-                    tbl = pd.DataFrame(standing)[["team", "pts", "gd", "gf"]]
-                    tbl.columns = ["Team", "Pts", "GD", "GF"]
-                    st.dataframe(tbl, hide_index=True, use_container_width=True)
-
-        with st.expander("Completed knockout results"):
-            kn = pd.DataFrame(state["completed_knockout"])
-            if len(kn):
-                kn["Result"] = kn.apply(
-                    lambda r: f"{r['home']} {r['home_score']}–{r['away_score']} {r['away']}  →  {r['winner']}",
-                    axis=1)
-                st.dataframe(kn[["Result"]], hide_index=True, use_container_width=True)
 
 # --------------------------------------------------------------------------- #
-# Model card
+# Panels
 # --------------------------------------------------------------------------- #
-with tab_model:
-    st.subheader("How accurate is it?")
+DOLLAR_COLS = {
+    "optimal_dollar": "Optimal $", "expected_dollar": "Expected $", "max_bid": "Max bid",
+    "draft_price": "Paid $", "suggested_bid": "Suggest $",
+}
+DISPLAY_RENAME = {
+    "overall_rank": "#", "player": "Player", "position": "Pos", "team": "Tm",
+    "tier": "Tier", "proj_points": "Proj", "pos_rank": "PosRk", "why": "Why",
+    "rec_score": "Score", "drafted_by": "By", **DOLLAR_COLS,
+}
+
+
+def _fmt_board(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
+    show = df[cols].rename(columns=DISPLAY_RENAME)
+    return show
+
+
+def budget_banner(ds: DraftState) -> None:
+    league = ds.league
+    open_slots = ds.open_slots()
+    open_total = ds.my_open_slots
+    per_slot = ds.my_remaining / open_total if open_total else 0
+    c = st.columns([1, 1, 1, 1, 3])
+    c[0].metric("My budget left", f"${ds.my_remaining}", f"-${ds.my_spent} spent")
+    c[1].metric("Roster", f"{len(ds.my_player_ids)}/{league.roster_size}")
+    c[2].metric("Max bid now", f"${ds.max_bid_any()}")
+    c[3].metric("Avg $/open slot", f"${per_slot:.0f}")
+    needs = [f"{k}×{v}" for k, v in open_slots.items() if v and k != "BENCH"]
+    bench = open_slots.get("BENCH", 0)
+    with c[4]:
+        st.caption("**Open starter slots**")
+        st.write(("  ".join(f"`{n}`" for n in needs) or "_all starters filled_")
+                 + (f"  +{bench} bench" if bench else ""))
+
+
+def draft_board_tab(ds: DraftState) -> None:
+    budget_banner(ds)
+    st.divider()
+
+    # --- log a pick ---------------------------------------------------------
+    board_all = ds.board(available_only=False)
+    avail = board_all[~board_all["drafted"]].copy()
+    st.subheader("✔️ Log a pick")
+    with st.form("log_pick", clear_on_submit=True):
+        fc = st.columns([4, 1, 2, 1])
+        options = avail.sort_values("overall_rank")["player_id"].astype(str).tolist()
+        labels = {
+            str(r.player_id): f"{r.player} ({r.position}-{r.team})  ·  exp ${int(r.expected_dollar)} · max ${int(r.max_bid)}"
+            for r in avail.itertuples()
+        }
+        pid = fc[0].selectbox("Player", options, format_func=lambda i: labels.get(i, i), index=None,
+                              placeholder="Search a player…")
+        default_price = int(avail.set_index(avail["player_id"].astype(str)).loc[pid, "expected_dollar"]) if pid else 1
+        default_price = min(int(ds.league.budget), max(1, default_price))
+        price = fc[1].number_input("Price $", min_value=1, max_value=int(ds.league.budget), value=default_price)
+        who = fc[2].radio("Drafted by", ["My team", "Another team"], horizontal=True)
+        submitted = fc[3].form_submit_button("Draft ✔", use_container_width=True)
+    if submitted and pid:
+        mine = who == "My team"
+        if mine and ds.max_bid(pid) < price:
+            st.warning(f"That's above your max bid (${ds.max_bid(pid)}). Logged anyway.")
+        do_draft(pid, price, mine)
+        st.rerun()
+
+    # --- filters ------------------------------------------------------------
+    st.subheader("📋 Draft board")
+    f = st.columns([2, 3, 1, 1])
+    pos_filter = f[0].multiselect("Positions", list(POSITIONS), default=list(POSITIONS))
+    search = f[1].text_input("Search player", "")
+    only_need = f[2].checkbox("My needs", value=False, help="Only positions I still need to start.")
+    show_drafted = f[3].checkbox("Show drafted", value=False)
+
+    view = board_all if show_drafted else avail
+    view = view[view["position"].isin(pos_filter)]
+    if search:
+        view = view[view["player"].str.contains(search, case=False, na=False)]
+    if only_need:
+        needs = set(ds.open_starter_positions())
+        view = view[view["position"].isin(needs)]
+
+    cols = ["overall_rank", "player", "position", "team", "tier", "proj_points",
+            "optimal_dollar", "expected_dollar", "max_bid"]
+    if show_drafted:
+        cols += ["drafted_by", "draft_price"]
+    st.dataframe(
+        _fmt_board(view.sort_values("overall_rank"), cols),
+        hide_index=True, use_container_width=True, height=520,
+        column_config={
+            "Proj": st.column_config.NumberColumn(format="%.1f"),
+            "Optimal $": st.column_config.NumberColumn(format="$%d"),
+            "Expected $": st.column_config.NumberColumn(format="$%d"),
+            "Max bid": st.column_config.NumberColumn(format="$%d"),
+            "Paid $": st.column_config.NumberColumn(format="$%d"),
+        },
+    )
+    st.caption("**Optimal $** = model value (VORP). **Expected $** = live market price, "
+               "adjusts for draft inflation as players go off the board. **Max bid** = the "
+               "most you can pay and still fill every roster spot ($1 minimum each).")
+
+
+def recommendations_tab(ds: DraftState) -> None:
+    budget_banner(ds)
+    st.divider()
+    if ds.my_open_slots <= 0:
+        st.success("Your roster is full. 🎉")
+        return
+    needs = ds.open_starter_positions()
     st.markdown(
-        "Backtest on an untouched test set (matches from **2018 onward**, including the "
-        "2018 & 2022 World Cups). Components are trained only on earlier data; the "
-        "**ensemble** blends them. Lower **RPS** / **log-loss** / **Brier** is better.")
-    bt = (data or {}).get("backtest") or {}
-    if bt:
-        pretty = {"dixon_coles": "Dixon-Coles", "gboost": "Gradient Boosting",
-                  "elo_logistic": "Elo (logistic)", "base_rate": "Base rate", "ensemble": "Ensemble"}
-        rows = [{"Model": pretty.get(k, k), "RPS": m["rps"], "Log-loss": m["log_loss"],
-                 "Brier": m["brier"], "Accuracy": _pct(m["accuracy"]),
-                 "Exact score": _pct(m["exact_score"]), "n": m["n"]}
-                for k, m in bt.items()]
+        f"**Targets for your roster** — ${ds.my_remaining} left for {ds.my_open_slots} spots "
+        f"(~${ds.my_remaining / max(1, ds.my_open_slots):.0f}/slot). "
+        + (f"Still need to start: {', '.join(needs)}." if needs else "All starters filled — building depth/upside.")
+    )
+    recs = ds.recommendations(top_n=15)
+    if recs.empty:
+        st.info("No affordable targets — you may be out of budget or roster space.")
+        return
+    cols = ["player", "position", "team", "tier", "proj_points",
+            "optimal_dollar", "expected_dollar", "suggested_bid", "max_bid", "rec_score", "why"]
+    st.dataframe(
+        _fmt_board(recs, cols), hide_index=True, use_container_width=True, height=560,
+        column_config={
+            "Proj": st.column_config.NumberColumn(format="%.1f"),
+            "Optimal $": st.column_config.NumberColumn(format="$%d"),
+            "Expected $": st.column_config.NumberColumn(format="$%d"),
+            "Suggest $": st.column_config.NumberColumn(format="$%d"),
+            "Max bid": st.column_config.NumberColumn(format="$%d"),
+            "Score": st.column_config.ProgressColumn(format="%.0f", min_value=0, max_value=100),
+        },
+    )
+    st.caption("Ranked by roster need (open starter slots, scaled by scarcity), value "
+               "(optimal vs market) and tier scarcity. **Suggest $** is a sensible bid, "
+               "capped at your max.")
+
+
+def my_team_tab(ds: DraftState) -> None:
+    budget_banner(ds)
+    st.divider()
+    roster = ds.my_roster()
+    if roster.empty:
+        st.info("No players yet. Log your picks on the Draft Board tab.")
+        return
+    left, right = st.columns([3, 2])
+    with left:
+        st.subheader("Roster")
+        show = roster[["player", "position", "team", "tier", "proj_points", "price"]].rename(
+            columns={**DISPLAY_RENAME, "price": "Paid $"})
+        st.dataframe(show, hide_index=True, use_container_width=True,
+                     column_config={"Proj": st.column_config.NumberColumn(format="%.1f"),
+                                    "Paid $": st.column_config.NumberColumn(format="$%d")})
+        undo_id = st.selectbox("Undo a pick", roster["player_id"].astype(str).tolist(),
+                               format_func=lambda i: roster.set_index(roster["player_id"].astype(str)).loc[i, "player"],
+                               index=None, placeholder="Select a player to undo…")
+        if undo_id and st.button("Undo pick"):
+            do_undo(undo_id)
+            st.rerun()
+    with right:
+        st.subheader("Slots")
+        for slot, n in ds.open_slots().items():
+            filled = ds.league.starters.get(slot, ds.league.bench if slot == "BENCH" else 0)
+            st.write(f"**{slot}**: {filled - n}/{filled} filled" if filled else f"**{slot}**: {n} open")
+        st.metric("Projected starting points", f"{_starter_points(ds):.0f}")
+
+
+def _starter_points(ds: DraftState) -> float:
+    """Sum of my best legal starting lineup's projected points."""
+    roster = ds.my_roster().sort_values("proj_points", ascending=False)
+    from ffauction.league import FLEX_ELIGIBLE
+    need = dict(ds.league.starters)
+    total, flex_pool = 0.0, []
+    used = set()
+    for pos in ("QB", "RB", "WR", "TE", "DST", "K"):
+        got = roster[roster["position"] == pos].head(need.get(pos, 0))
+        total += got["proj_points"].sum()
+        used.update(got.index)
+    for _, r in roster.iterrows():
+        if r.name not in used and r["position"] in FLEX_ELIGIBLE:
+            flex_pool.append(r["proj_points"])
+    total += sum(sorted(flex_pool, reverse=True)[: need.get("FLEX", 0)])
+    return total
+
+
+def draft_log_tab(ds: DraftState) -> None:
+    board_all = ds.board(available_only=False)
+    drafted = board_all[board_all["drafted"]].copy().sort_values("draft_price", ascending=False)
+    left, right = st.columns([3, 2])
+    with left:
+        st.subheader(f"All picks ({len(drafted)})")
+        if drafted.empty:
+            st.info("No picks logged yet.")
+        else:
+            show = drafted[["player", "position", "team", "draft_price", "drafted_by",
+                            "optimal_dollar"]].rename(columns=DISPLAY_RENAME)
+            st.dataframe(show, hide_index=True, use_container_width=True, height=460,
+                         column_config={"Paid $": st.column_config.NumberColumn(format="$%d"),
+                                        "Optimal $": st.column_config.NumberColumn(format="$%d")})
+    with right:
+        st.subheader("Position scarcity")
+        avail = board_all[~board_all["drafted"]]
+        rows = []
+        for pos in POSITIONS:
+            startable = int((avail[avail["position"] == pos]["vorp"] > 0).sum())
+            rows.append({"Pos": pos, "Startable left": startable,
+                         "Total left": int((avail["position"] == pos).sum())})
         st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
-    wc = (data or {}).get("world_cup_backtest") or {}
-    if wc:
-        st.markdown(f"**On World Cup matches only** (2018 & 2022, n={wc['n']}): "
-                    f"RPS {wc['rps']}, log-loss {wc['log_loss']}, accuracy {_pct(wc['accuracy'])}.")
+        st.caption("“Startable” = players still projected above replacement level.")
 
-    weights = (data or {}).get("weights") or predictor.weight_map
-    if weights:
-        st.markdown("**Ensemble weights:** " +
-                    " · ".join(f"{k} {v:.0%}" for k, v in weights.items() if v > 0.001))
 
-    if CALIBRATION_PLOT_PATH.exists():
-        st.subheader("Calibration")
-        st.image(str(CALIBRATION_PLOT_PATH), width=430)
-
-    st.subheader("Method")
+def model_card_tab(meta: dict) -> None:
+    st.subheader("Projections & accuracy")
+    if not meta:
+        st.info("Run `python scripts/build_projections.py` to generate projections.")
+        return
+    c = st.columns(3)
+    c[0].metric("Data through", f"{meta.get('data_through_season','?')} season")
+    c[1].metric("Projecting", f"{meta.get('target_season','?')} season")
+    c[2].metric("Players", meta.get("n_players", "?"))
+    acc = meta.get("accuracy") or {}
+    if acc:
+        st.markdown(
+            f"**Backtest** (projecting the {acc.get('test_season')} season from earlier "
+            f"data, top {acc.get('n')} players): MAE **{acc.get('mae')}** pts · "
+            f"rank-corr **{acc.get('rank_corr')}**.")
+        pm = acc.get("pos_mae") or {}
+        if pm:
+            st.caption("Per-position MAE: " + " · ".join(f"{k} {v}" for k, v in pm.items()))
     st.markdown(
-        "- **Data:** ~49k internationals (1872→today), auto-updated.\n"
-        "- **Ratings:** custom Elo (margin-of-victory + match-importance weighted).\n"
-        "- **Scorelines:** time-weighted **Dixon-Coles** bivariate Poisson.\n"
-        "- **Outcomes:** gradient boosting on Elo, form, rest & venue features.\n"
-        "- **Ensemble:** log-loss-optimal blend + temperature calibration.\n"
-        "- **Tournament:** Monte-Carlo of the remaining bracket (shootout-aware).")
+        f"**Sources:** {', '.join(meta.get('sources', []))} "
+        f"(weights: {meta.get('source_weights', {})}). Built from open **nflverse** data; "
+        "seasons " + ", ".join(map(str, meta.get("seasons_used", []))) + ".")
+    st.info("This is a data-driven **baseline**. For your live draft, import current-season "
+            "projections from your most-trusted source (sidebar → Projections) — matched "
+            "players are overridden and new players added. Kicker/D-ST are a curated baseline.")
+
+
+# --------------------------------------------------------------------------- #
+# Main
+# --------------------------------------------------------------------------- #
+def main() -> None:
+    _init_state()
+    defaults = load_league()
+    meta = load_meta()
+
+    league = sidebar_settings(defaults)
+    base_proj = load_base_projections()
+    sidebar_import(base_proj)
+    sidebar_saveload()
+
+    proj = get_projections()
+    values = valuation.compute_values(proj, league)
+    ds = DraftState(league, values)
+    ds.load_dict({"picks": st.session_state.picks})
+
+    st.title("🏈 Auction Draft Assistant")
+    st.caption(
+        f"{scoring.FORMAT_LABELS[league.scoring_format]} · {league.teams} teams · "
+        f"${league.budget} budget · {league.roster_size} roster spots · "
+        f"baseline from NFL data through {meta.get('data_through_season', '?')}"
+        + ("  ·  📥 imported projections active" if st.session_state.get("custom_proj") is not None else "")
+    )
+
+    tabs = st.tabs(["📋 Draft Board", "🎯 Recommendations", "🧑‍🤝‍🧑 My Team",
+                    "📜 Draft Log", "📊 Model Card"])
+    with tabs[0]:
+        draft_board_tab(ds)
+    with tabs[1]:
+        recommendations_tab(ds)
+    with tabs[2]:
+        my_team_tab(ds)
+    with tabs[3]:
+        draft_log_tab(ds)
+    with tabs[4]:
+        model_card_tab(meta)
+
+
+main()
