@@ -27,6 +27,15 @@ are one click away).
 - **Your team, live** — budget left, average $/open slot, open starter slots,
   projected starting-lineup points, and a full draft log with position scarcity.
 
+## Two ways to run it
+
+- **Hosted web app (no setup)** — a self-contained single-page version, "Auction
+  War Room", runs entirely in the browser (works on a phone). Regenerate it with
+  `python scripts/build_web_app.py` → `web/auction_app.html` (the engine is a JS
+  port of `valuation.py`/`draft.py`; the dataset is embedded, computed via
+  `ffauction.scoring` for exact parity with the Python app).
+- **Streamlit app (local)** — the full Python app below.
+
 ## Quick start
 
 ```bash

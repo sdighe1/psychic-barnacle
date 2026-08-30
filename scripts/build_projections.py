@@ -35,6 +35,32 @@ FULL_COLUMNS = (
 )
 
 
+def correct_teams(full: pd.DataFrame, season: int) -> pd.DataFrame:
+    """The FantasyPros mirror's team column is unreliable (e.g. it mislabels a
+    few veterans). Overwrite it with nflverse roster teams (authoritative for the
+    data vintage), matched by normalised name; keep the source team for players
+    nflverse doesn't have (rookies)."""
+    import contextlib
+    import io
+
+    from ffauction.providers import normalize_name
+    try:
+        nfl = data._quiet_import()
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            r = nfl.import_seasonal_rosters([season])
+        r = r[["player_name", "team"]].dropna()
+        r["key"] = r["player_name"].map(normalize_name)
+        r = r.drop_duplicates("key", keep="last")
+        m = dict(zip(r["key"], r["team"]))
+        full = full.copy()
+        full["team"] = [
+            m.get(normalize_name(p), t) for p, t in zip(full["player"], full["team"])
+        ]
+    except Exception as exc:  # network/format issue -> keep source teams
+        print(f"  (team correction skipped: {exc})")
+    return full
+
+
 def load_kdst() -> pd.DataFrame:
     """Curated kicker / defense baseline -> projection schema (points override)."""
     raw = pd.read_csv(KDST_BASELINE_PATH)
@@ -110,6 +136,7 @@ def main() -> int:
         full = pd.concat([skill, load_kdst()], ignore_index=True)
         print("  FantasyPros ECR unavailable (blocked/offline) -> model-only projection.")
 
+    full = correct_teams(full, latest)      # fix the mirror's unreliable team column
     for c in FULL_COLUMNS:
         if c not in full.columns:
             full[c] = np.nan

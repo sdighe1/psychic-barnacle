@@ -1,0 +1,674 @@
+<title>Auction War Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* ---------- theme tokens (light default; dark for system + explicit) ------- */
+:root{
+  --bg:#eef0ec; --panel:#ffffff; --panel-2:#f4f6f1; --panel-3:#e9ece5;
+  --border:#d7dcd2; --border-strong:#c3cabd;
+  --text:#16201b; --muted:#606b62; --faint:#8a948b;
+  --accent:#1f7a4d; --accent-ink:#ffffff; --accent-weak:#dcefe3; --accent-line:#2f8f5b;
+  --gold:#9a6410; --gold-bg:#f6ead0;
+  --value:#0e7c86; --value-bg:#d5edef;
+  --reach:#c0472f; --reach-bg:#f6ddd6;
+  --shadow:0 1px 2px rgba(20,40,30,.06),0 8px 24px -12px rgba(20,40,30,.18);
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c110f; --panel:#141b17; --panel-2:#111815; --panel-3:#1b2420;
+  --border:#26322c; --border-strong:#33423a;
+  --text:#e9efe9; --muted:#93a29a; --faint:#6c7a72;
+  --accent:#46c07f; --accent-ink:#06140c; --accent-weak:#15271d; --accent-line:#39a86e;
+  --gold:#f2b441; --gold-bg:#2a2110;
+  --value:#39c3cf; --value-bg:#0e2a2c;
+  --reach:#f4795c; --reach-bg:#2f1611;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  --bg:#0c110f; --panel:#141b17; --panel-2:#111815; --panel-3:#1b2420;
+  --border:#26322c; --border-strong:#33423a;
+  --text:#e9efe9; --muted:#93a29a; --faint:#6c7a72;
+  --accent:#46c07f; --accent-ink:#06140c; --accent-weak:#15271d; --accent-line:#39a86e;
+  --gold:#f2b441; --gold-bg:#2a2110;
+  --value:#39c3cf; --value-bg:#0e2a2c;
+  --reach:#f4795c; --reach-bg:#2f1611;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -14px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;}
+h1,h2,h3{margin:0;font-family:"Barlow Semi Condensed",system-ui,sans-serif;text-wrap:balance;letter-spacing:.01em}
+button{font:inherit;cursor:pointer}
+input,select{font:inherit;color:inherit}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+.label{font-family:"Barlow Semi Condensed",sans-serif;text-transform:uppercase;letter-spacing:.09em;font-weight:600;
+  font-size:11px;color:var(--muted)}
+::selection{background:var(--accent);color:var(--accent-ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* ---------- shell ---------- */
+.app{display:grid;grid-template-columns:300px minmax(0,1fr);gap:0;min-height:100vh}
+.rail{background:var(--panel);border-right:1px solid var(--border);padding:18px 18px 22px;
+  display:flex;flex-direction:column;gap:16px;position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto}
+.main{min-width:0;padding:18px 22px 40px;display:flex;flex-direction:column;gap:14px}
+
+/* brand */
+.brand{display:flex;align-items:center;gap:10px}
+.brand .mark{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:19px;
+  background:linear-gradient(160deg,var(--accent),var(--accent-line));color:var(--accent-ink);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+.brand h1{font-size:19px;font-weight:700;line-height:1}
+.brand .sub{font-size:11px;color:var(--faint);margin-top:2px}
+
+/* settings */
+.seg{display:flex;background:var(--panel-3);border-radius:9px;padding:3px;gap:2px}
+.seg button{flex:1;border:0;background:transparent;color:var(--muted);padding:6px 4px;border-radius:6px;
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.03em}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--text);box-shadow:var(--shadow)}
+.field-row{display:flex;gap:10px}
+.field{flex:1;display:flex;flex-direction:column;gap:4px}
+.field input{background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:7px 9px;width:100%}
+
+/* command scoreboard */
+.score{background:var(--panel-2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;
+  display:flex;flex-direction:column;gap:12px}
+.maxbid{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.maxbid .big{font-family:"IBM Plex Mono";font-weight:600;font-size:40px;line-height:.9;color:var(--gold);
+  letter-spacing:-.02em}
+.bar{height:8px;border-radius:99px;background:var(--panel-3);overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent-line),var(--accent));border-radius:99px;
+  transition:width .35s cubic-bezier(.4,0,.2,1)}
+.stat-row{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.stat-row b{font-family:"IBM Plex Mono";font-weight:600}
+.needs{display:flex;flex-wrap:wrap;gap:5px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:11.5px;
+  font-weight:600;font-family:"Barlow Semi Condensed",sans-serif;letter-spacing:.02em;white-space:nowrap}
+.chip.need{background:var(--accent-weak);color:var(--accent);border:1px solid transparent}
+.chip.ghost{background:var(--panel-3);color:var(--muted)}
+
+.rail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.btn{border:1px solid var(--border-strong);background:var(--panel-2);color:var(--text);padding:7px 11px;
+  border-radius:8px;font-weight:600;font-size:12.5px;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.sm{padding:5px 9px;font-size:12px}
+.rail-foot{font-size:11px;color:var(--faint);line-height:1.5;border-top:1px solid var(--border);padding-top:12px}
+.rail-foot b{color:var(--muted);font-weight:600}
+
+/* main header + tabs */
+.topline{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.topline .src{font-size:12px;color:var(--muted)}
+.topline .src b{color:var(--text);font-weight:600}
+.tabs{display:flex;gap:4px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:4px;
+  align-self:flex-start}
+.tabs button{border:0;background:transparent;color:var(--muted);padding:7px 15px;border-radius:7px;
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:14px;letter-spacing:.02em;
+  display:inline-flex;align-items:center;gap:7px}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.tabs .count{font-size:11px;opacity:.8;font-family:"IBM Plex Mono"}
+
+/* filter bar */
+.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search{flex:1;min-width:160px;position:relative}
+.search input{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:9px 12px 9px 32px}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--faint)}
+.posfilter{display:flex;gap:4px;flex-wrap:wrap}
+.posfilter button{border:1px solid var(--border);background:var(--panel);color:var(--muted);border-radius:8px;
+  padding:6px 10px;font-weight:600;font-size:12px;font-family:"Barlow Semi Condensed",sans-serif;letter-spacing:.03em}
+.posfilter button[aria-pressed="true"]{background:var(--text);color:var(--bg);border-color:var(--text)}
+.toggle{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);user-select:none;cursor:pointer}
+.toggle input{accent-color:var(--accent);width:15px;height:15px}
+
+/* table */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.twrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:720px}
+thead th{position:sticky;top:0;z-index:2;background:var(--panel);text-align:right;padding:9px 10px;
+  font-family:"Barlow Semi Condensed",sans-serif;text-transform:uppercase;letter-spacing:.06em;font-size:11px;
+  color:var(--muted);font-weight:600;border-bottom:1px solid var(--border-strong);white-space:nowrap}
+thead th.l{text-align:left}
+tbody td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap;vertical-align:middle}
+tbody td.l{text-align:left}
+tbody tr:hover{background:var(--panel-2)}
+tbody tr.mine{box-shadow:inset 3px 0 0 var(--accent)}
+tbody tr.drafted{opacity:.5}
+tbody tr.drafted .pname{text-decoration:line-through;text-decoration-color:var(--faint)}
+.rk{color:var(--faint);font-family:"IBM Plex Mono";font-size:12px}
+.pname{font-weight:600;font-size:14px}
+.pmeta{color:var(--muted);font-size:11.5px;font-family:"IBM Plex Mono"}
+.pill{display:inline-block;min-width:34px;text-align:center;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:700;
+  font-family:"Barlow Semi Condensed",sans-serif;letter-spacing:.03em;background:var(--panel-3);color:var(--muted)}
+.pill.QB{background:#e9dcff33;color:#8a63d2}
+.pill.RB{background:#c9efd633;color:#1f9d57}
+.pill.WR{background:#ffe0c233;color:#d0812f}
+.pill.TE{background:#ffd6d633;color:#cf5a5a}
+.pill.K{background:#dfe6ff33;color:#5c78c8}
+.pill.DST{background:#d7f0ee33;color:#2b9c93}
+.tier{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:12px}
+.tier i{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block}
+.dol{font-family:"IBM Plex Mono";font-weight:600}
+.dol.opt{color:var(--text)}
+.exp{font-family:"IBM Plex Mono"}
+.delta{font-size:10.5px;font-weight:700;font-family:"Barlow Semi Condensed",sans-serif;padding:1px 6px;border-radius:5px;
+  margin-left:6px;letter-spacing:.02em}
+.delta.value{background:var(--value-bg);color:var(--value)}
+.delta.reach{background:var(--reach-bg);color:var(--reach)}
+.max{color:var(--gold);font-family:"IBM Plex Mono";font-weight:600}
+.act{display:inline-flex;gap:4px;align-items:center;justify-content:flex-end}
+.act input{width:52px;background:var(--panel-2);border:1px solid var(--border);border-radius:7px;padding:5px 6px;
+  text-align:right;font-family:"IBM Plex Mono";font-weight:600}
+.act .me{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:7px;padding:5px 9px;
+  font-weight:700;font-size:12px;font-family:"Barlow Semi Condensed",sans-serif;letter-spacing:.03em}
+.act .opp{border:1px solid var(--border-strong);background:var(--panel-2);color:var(--muted);border-radius:7px;
+  padding:5px 8px;font-weight:700;font-size:12px;font-family:"Barlow Semi Condensed",sans-serif}
+.act .me:hover{filter:brightness(1.05)} .act .opp:hover{border-color:var(--reach);color:var(--reach)}
+.by{font-size:11px;font-weight:700;font-family:"Barlow Semi Condensed",sans-serif;letter-spacing:.03em}
+.by.me{color:var(--accent)} .by.opp{color:var(--muted)}
+.undo{border:1px solid var(--border);background:var(--panel-2);color:var(--muted);border-radius:6px;padding:3px 7px;font-size:11px}
+.undo:hover{border-color:var(--reach);color:var(--reach)}
+
+/* targets */
+.guide{background:var(--accent-weak);border:1px solid transparent;border-radius:var(--radius);padding:12px 14px;
+  font-size:13.5px;color:var(--text)}
+.guide b{color:var(--accent)}
+.why{color:var(--muted);font-size:12px;white-space:normal;text-align:left;max-width:340px}
+.scorebar{display:inline-flex;align-items:center;gap:7px}
+.scorebar .track{width:54px;height:6px;border-radius:99px;background:var(--panel-3);overflow:hidden}
+.scorebar .track>i{display:block;height:100%;background:var(--accent)}
+
+/* log */
+.two{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px}
+.section-h{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border)}
+.section-h h3{font-size:15px;font-weight:700}
+.empty{padding:30px 16px;text-align:center;color:var(--faint);font-size:13px}
+.scar td,.scar th{text-align:center}
+.scar td.l,.scar th.l{text-align:left}
+
+/* backup modal */
+.modal{position:fixed;inset:0;background:rgba(6,12,9,.55);display:none;place-items:center;z-index:50;padding:20px}
+.modal.open{display:grid}
+.modal .box{background:var(--panel);border:1px solid var(--border-strong);border-radius:14px;box-shadow:var(--shadow);
+  width:min(560px,100%);padding:18px;display:flex;flex-direction:column;gap:12px}
+.modal h3{font-size:18px}
+.modal textarea{width:100%;height:180px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;
+  padding:10px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--text);resize:vertical}
+.modal .row{display:flex;gap:8px;justify-content:flex-end}
+.modal .primary{background:var(--accent);color:var(--accent-ink);border:0}
+.modal .primary:hover{filter:brightness(1.05);color:var(--accent-ink)}
+
+/* mobile summary (hidden on desktop) */
+.msum{display:none}
+
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .rail{position:static;height:auto;border-right:0;border-bottom:1px solid var(--border);
+    display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+  .rail .brand{grid-column:1/-1}
+  .rail .score{grid-column:1/-1}
+  .rail-actions{grid-column:1/-1;margin-top:0}
+  .rail-foot{grid-column:1/-1}
+}
+@media (max-width:560px){
+  .main{padding:14px}
+  .rail{grid-template-columns:1fr}
+  table{min-width:560px}
+  .hide-sm{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <!-- ============ COMMAND RAIL ============ -->
+  <aside class="rail">
+    <div class="brand">
+      <div class="mark">🏈</div>
+      <div>
+        <h1>Auction War Room</h1>
+        <div class="sub" id="brandSub">Half-PPR · 10 teams · $200</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="label" style="margin-bottom:6px">Scoring</div>
+      <div class="seg" id="fmtSeg" role="group" aria-label="Scoring format">
+        <button data-fmt="standard" aria-pressed="false">Std</button>
+        <button data-fmt="half" aria-pressed="true">Half</button>
+        <button data-fmt="ppr" aria-pressed="false">PPR</button>
+      </div>
+    </div>
+    <div class="field-row">
+      <label class="field"><span class="label">Teams</span>
+        <input id="teams" class="mono" type="number" min="4" max="16" step="1" value="10"></label>
+      <label class="field"><span class="label">Budget $</span>
+        <input id="budget" class="mono" type="number" min="50" max="1000" step="10" value="200"></label>
+    </div>
+
+    <div class="score" aria-live="polite">
+      <div class="maxbid">
+        <span class="label">Max bid now</span>
+        <span class="big" id="maxbid">$188</span>
+      </div>
+      <div>
+        <div class="stat-row"><span>Budget left</span><b id="budgetLeft">$200</b></div>
+        <div class="bar" style="margin-top:6px"><i id="budgetBar" style="width:100%"></i></div>
+      </div>
+      <div class="stat-row"><span>Roster</span><b id="rosterN">0 / 13</b></div>
+      <div class="stat-row"><span>Avg $ / open slot</span><b id="perSlot">$15</b></div>
+      <div>
+        <div class="label" style="margin-bottom:6px">Still need to start</div>
+        <div class="needs" id="needs"></div>
+      </div>
+    </div>
+
+    <div class="rail-actions">
+      <button class="btn sm" id="btnExport">⭳ Back up</button>
+      <button class="btn sm" id="btnImport">⭱ Restore</button>
+      <button class="btn sm" id="btnReset">↺ Reset draft</button>
+    </div>
+
+    <div class="rail-foot" id="foot"></div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <div class="topline">
+      <div class="tabs" role="tablist">
+        <button role="tab" data-tab="board" aria-selected="true">Board</button>
+        <button role="tab" data-tab="targets" aria-selected="false">Targets <span class="count" id="tabTargets"></span></button>
+        <button role="tab" data-tab="log" aria-selected="false">Log <span class="count" id="tabLog"></span></button>
+      </div>
+      <div class="src" id="srcline"></div>
+    </div>
+
+    <!-- BOARD -->
+    <section id="panel-board" style="display:flex;flex-direction:column;gap:12px">
+      <div class="filters">
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="search" type="search" placeholder="Search player…" autocomplete="off">
+        </div>
+        <div class="posfilter" id="posfilter"></div>
+        <label class="toggle"><input type="checkbox" id="hideDrafted" checked> Hide drafted</label>
+        <label class="toggle"><input type="checkbox" id="onlyNeed"> My needs</label>
+      </div>
+      <div class="card"><div class="twrap"><table id="boardTable">
+        <thead><tr>
+          <th class="l">#</th><th class="l">Player</th><th>Pos</th><th class="hide-sm">FP</th>
+          <th class="hide-sm">Tier</th><th class="hide-sm">Proj</th>
+          <th>Opt&nbsp;$</th><th>Exp&nbsp;$</th><th>Max</th><th>Draft</th>
+        </tr></thead>
+        <tbody id="boardBody"></tbody>
+      </table></div></div>
+      <div class="src" style="font-size:11.5px">
+        <b style="color:var(--text)">Opt $</b> = model value (VORP). <b style="color:var(--text)">Exp $</b> = live market
+        price, re-inflates as players go off the board. <b style="color:var(--gold)">Max</b> = most you can pay and still
+        fill every roster spot. K/D-ST are held at $1 (auctions never pay up for them).
+      </div>
+    </section>
+
+    <!-- TARGETS -->
+    <section id="panel-targets" style="display:none;flex-direction:column;gap:12px">
+      <div class="guide" id="guide"></div>
+      <div class="card"><div class="twrap"><table>
+        <thead><tr>
+          <th class="l">Player</th><th>Pos</th><th class="hide-sm">FP</th><th class="hide-sm">Tier</th>
+          <th>Opt&nbsp;$</th><th>Exp&nbsp;$</th><th>Bid</th><th class="hide-sm">Fit</th><th class="l">Why</th><th>Draft</th>
+        </tr></thead>
+        <tbody id="targetsBody"></tbody>
+      </table></div></div>
+    </section>
+
+    <!-- LOG -->
+    <section id="panel-log" style="display:none">
+      <div class="two">
+        <div class="card">
+          <div class="section-h"><h3>Draft log</h3><span class="label" id="logCount"></span></div>
+          <div class="twrap"><table>
+            <thead><tr><th class="l">Player</th><th>Pos</th><th>Paid</th><th>By</th><th class="hide-sm">Opt$</th><th></th></tr></thead>
+            <tbody id="logBody"></tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <div class="section-h"><h3>Position scarcity</h3></div>
+          <div class="twrap"><table class="scar">
+            <thead><tr><th class="l">Pos</th><th>Startable left</th><th>Total left</th></tr></thead>
+            <tbody id="scarBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Draft backup">
+  <div class="box">
+    <h3 id="modalTitle">Back up draft</h3>
+    <p id="modalHint" style="margin:0;color:var(--muted);font-size:12.5px"></p>
+    <textarea id="modalText" spellcheck="false" aria-label="Draft data"></textarea>
+    <div class="row">
+      <button class="btn sm" id="modalCopy">Copy</button>
+      <button class="btn sm" id="modalClose">Close</button>
+      <button class="btn sm primary" id="modalLoad">Load</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DB = __EMBEDDED_JSON__;
+
+/* ======================= engine (ports valuation.py + draft.py) ========= */
+const POSITIONS=["QB","RB","WR","TE","DST","K"], FLEX_ELIG=["RB","WR","TE"], STREAM=["K","DST"];
+const STARTERS={QB:1,RB:2,WR:2,TE:1,FLEX:1,DST:1,K:1}, BENCH=4;
+const CAPS={QB:4,RB:8,WR:8,TE:3,DST:3,K:3};
+const ROSTER=Object.values(STARTERS).reduce((a,b)=>a+b,0)+BENCH; // 13
+
+function league(){return {teams:S.teams,budget:S.budget,roster:ROSTER,
+  money:S.teams*S.budget, spots:S.teams*ROSTER};}
+function pts(p){return p[S.format];}
+
+function nth(sortedDesc,n){ if(!sortedDesc.length||n<=0)return 0; return sortedDesc[Math.min(n,sortedDesc.length)-1]; }
+
+function replacement(players,L){
+  const lv={}, by=p=>p.__pts;
+  for(const pos of ["QB","DST","K"]){
+    const a=players.filter(p=>p.pos===pos).map(by).sort((x,y)=>y-x);
+    lv[pos]=nth(a,L.teams*(STARTERS[pos]||0));
+  }
+  const cnt={RB:L.teams*STARTERS.RB,WR:L.teams*STARTERS.WR,TE:L.teams*STARTERS.TE};
+  const pool=players.filter(p=>FLEX_ELIG.includes(p.pos)).slice().sort((a,b)=>b.__pts-a.__pts);
+  const seat={RB:0,WR:0,TE:0}; const flexCand=[];
+  for(const p of pool){ if(seat[p.pos]<{RB:L.teams*STARTERS.RB,WR:L.teams*STARTERS.WR,TE:L.teams*STARTERS.TE}[p.pos]){seat[p.pos]++;} else flexCand.push(p); }
+  const flexN=L.teams*STARTERS.FLEX;
+  for(let i=0;i<Math.min(flexN,flexCand.length);i++) cnt[flexCand[i].pos]++;
+  for(const pos of FLEX_ELIG){ const a=players.filter(p=>p.pos===pos).map(by).sort((x,y)=>y-x); lv[pos]=nth(a,cnt[pos]); }
+  return lv;
+}
+function dollarPerPoint(vorps,disc,nPool){
+  const top=vorps.slice().sort((a,b)=>b-a).slice(0,Math.max(nPool,0));
+  const tot=top.filter(v=>v>0).reduce((a,b)=>a+b,0);
+  return (tot<=0||disc<=0)?0:disc/tot;
+}
+function dollars(v,dpp){return Math.max(1,1+Math.max(v,0)*dpp);}
+
+function computeValues(){
+  const L=league();
+  const players=DB.players.map(p=>({...p,__pts:pts(p)}));
+  const repl=replacement(players,L);
+  for(const p of players){ p.repl=repl[p.pos]||0; p.vorp=+(p.__pts-p.repl).toFixed(2); p.pool=!STREAM.includes(p.pos); }
+  const disc=L.money-L.spots;
+  const dpp=dollarPerPoint(players.filter(p=>p.pool).map(p=>p.vorp),disc,L.spots);
+  for(const p of players){ p.optimal=p.pool?Math.round(dollars(p.vorp,dpp)):1; }
+  assignTiers(players);
+  players.sort((a,b)=> b.vorp-a.vorp || b.__pts-a.__pts);
+  players.forEach((p,i)=>p.rank=i+1);
+  const posRank={}; for(const p of [...players].sort((a,b)=>b.__pts-a.__pts)){posRank[p.pos]=(posRank[p.pos]||0)+1;p.posRank=posRank[p.pos];}
+  return players;
+}
+function assignTiers(players){
+  for(const pos of POSITIONS){
+    const g=players.filter(p=>p.pos===pos).sort((a,b)=>b.__pts-a.__pts);
+    if(g.length<=1){g.forEach(p=>p.tier=1);continue;}
+    const gaps=[]; for(let i=1;i<g.length;i++){const d=g[i-1].__pts-g[i].__pts; if(d>=0)gaps.push(d);}
+    const mean=gaps.reduce((a,b)=>a+b,0)/gaps.length;
+    const sd=Math.sqrt(gaps.reduce((a,b)=>a+(b-mean)**2,0)/gaps.length);
+    const thr=Math.max(3,mean+sd); let t=1,prev=null;
+    for(const p of g){ if(prev!==null&&(prev-p.__pts)>thr)t++; p.tier=t; prev=p.__pts; }
+  }
+}
+function liveExpected(valued){
+  const L=league(); const drafted=new Set(Object.keys(S.picks));
+  const nD=drafted.size, spent=totalSpent();
+  const remMoney=L.money-spent, remSpots=L.spots-nD;
+  const exp={};
+  if(remSpots<=0){ for(const p of valued) exp[p.id]=Math.max(1,p.optimal); return exp; }
+  const disc=remMoney-remSpots;
+  const availVorp=valued.filter(p=>!drafted.has(p.id)&&p.pool).map(p=>p.vorp);
+  const dpp=dollarPerPoint(availVorp,disc,remSpots);
+  for(const p of valued) exp[p.id]=p.pool?Math.round(dollars(p.vorp,dpp)):1;
+  return exp;
+}
+
+/* --- my team --- */
+function totalSpent(){return Object.values(S.picks).reduce((a,p)=>a+p.price,0);}
+function mySpent(){return Object.values(S.picks).filter(p=>p.mine).reduce((a,p)=>a+p.price,0);}
+function myIds(){return Object.keys(S.picks).filter(id=>S.picks[id].mine);}
+function myRemaining(){return S.budget-mySpent();}
+function myOpen(){return ROSTER-myIds().length;}
+function posCounts(){const c={};for(const id of myIds()){const p=byId[id];if(p)c[p.pos]=(c[p.pos]||0)+1;}return c;}
+function maxBidAny(){return myOpen()<=0?0:Math.max(1,myRemaining()-(myOpen()-1));}
+function canDraft(id){const p=byId[id];if(!p||S.picks[id])return false;if(myOpen()<=0)return false;
+  return (posCounts()[p.pos]||0)<CAPS[p.pos];}
+function maxBid(id){return canDraft(id)?maxBidAny():0;}
+function openSlots(){
+  const c=posCounts(),openDed={},over={};
+  for(const pos of POSITIONS){openDed[pos]=Math.max(0,(STARTERS[pos]||0)-(c[pos]||0));over[pos]=Math.max(0,(c[pos]||0)-(STARTERS[pos]||0));}
+  const flexReq=STARTERS.FLEX, flexAvail=FLEX_ELIG.reduce((a,p)=>a+over[p],0), flexFill=Math.min(flexReq,flexAvail);
+  const seated=POSITIONS.reduce((a,p)=>a+Math.min(c[p]||0,STARTERS[p]||0),0)+flexFill;
+  const benchOpen=Math.max(0,BENCH-Math.max(0,myIds().length-seated));
+  const r={};POSITIONS.forEach(p=>r[p]=openDed[p]);r.FLEX=flexReq-flexFill;r.BENCH=benchOpen;return r;
+}
+function openStarterPos(){const o=openSlots();const n=POSITIONS.filter(p=>o[p]>0);
+  if(o.FLEX>0)for(const p of FLEX_ELIG)if(!n.includes(p))n.push(p);return n;}
+
+/* --- recommendations (ports draft.recommendations) --- */
+function norm(arr){const lo=Math.min(...arr),hi=Math.max(...arr);
+  return arr.map(x=> hi-lo<1e-9?0.5:(x-lo)/(hi-lo));}
+function recommendations(valued,exp,topN=15){
+  const o=openSlots(),needPos=openStarterPos();
+  const avail=valued.filter(p=>!S.picks[p.id]&&maxBid(p.id)>=1);
+  if(!avail.length)return [];
+  const supply={},tierSup={};
+  for(const p of avail){ if(p.vorp>0)supply[p.pos]=(supply[p.pos]||0)+1; const k=p.pos+"|"+p.tier;tierSup[k]=(tierSup[k]||0)+1; }
+  const comp=avail.map(p=>{
+    let need;
+    if(o[p.pos]>0)need=1; else if(FLEX_ELIG.includes(p.pos)&&o.FLEX>0)need=0.7; else if(o.BENCH>0)need=0.3; else need=0;
+    const urg=1/Math.sqrt(Math.max(1,supply[p.pos]||1));
+    const needScore=(needPos.includes(p.pos)||need>=0.3)?need*(0.6+0.4*urg):need*0.3;
+    const surplus=p.optimal-exp[p.id], vorp=Math.max(p.vorp,0);
+    const scarce=1/Math.max(1,tierSup[p.pos+"|"+p.tier]||1);
+    const afford=exp[p.id]<=Math.max(1,maxBid(p.id))?1:0.5;
+    return {p,need:Math.min(1,Math.max(0,needScore)),surplus,vorp,scarce,afford};
+  });
+  const vN=norm(comp.map(c=>c.vorp)),sN=norm(comp.map(c=>c.surplus)),aN=norm(comp.map(c=>c.afford));
+  comp.forEach((c,i)=>{ c.score=Math.min(100,(0.42*c.need+0.24*vN[i]+0.16*sN[i]+0.10*c.scarce+0.08*aN[i])*c.afford*100); });
+  comp.sort((a,b)=>b.score-a.score);
+  return comp.slice(0,topN).map(c=>{
+    const p=c.p,bid=Math.min(maxBid(p.id),Math.max(1,exp[p.id]));
+    const bits=[]; if(o[p.pos]>0)bits.push(`fills ${p.pos} starter`);
+    else if(FLEX_ELIG.includes(p.pos)&&o.FLEX>0)bits.push("fills FLEX"); else bits.push(`${p.pos} depth`);
+    const sp=p.optimal-exp[p.id]; if(sp>=2)bits.push(`value ($${p.optimal} vs $${exp[p.id]})`);
+    const left=tierSup[p.pos+"|"+p.tier]||1; if(left<=2)bits.push(`only ${left} left in ${p.pos} tier ${p.tier}`);
+    return {p,score:Math.round(c.score),bid,why:bits.join(" · ")};
+  });
+}
+
+/* ======================= state ======================= */
+const byId={}; DB.players.forEach(p=>byId[p.id]=p);
+const LS="ffauction.warroom.v1";
+const S=Object.assign({format:"half",teams:10,budget:200,picks:{},tab:"board",
+  search:"",pos:new Set(POSITIONS),hideDrafted:true,onlyNeed:false},load());
+function load(){try{const j=JSON.parse(localStorage.getItem(LS));if(j)return {format:j.format,teams:j.teams,budget:j.budget,picks:j.picks||{}};}catch(e){}return {};}
+function save(){try{localStorage.setItem(LS,JSON.stringify({format:S.format,teams:S.teams,budget:S.budget,picks:S.picks}));}catch(e){}}
+
+/* ======================= render ======================= */
+const FMT_LABEL={standard:"Standard",half:"Half-PPR",ppr:"Full PPR"};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let VALUED=[],EXP={};
+
+function recompute(){VALUED=computeValues();EXP=liveExpected(VALUED);}
+
+function deltaChip(opt,exp){const d=opt-exp;
+  if(d>=2)return `<span class="delta value">+$${d}</span>`;
+  if(d<=-2)return `<span class="delta reach">-$${-d}</span>`;return "";}
+
+function rowHTML(p){
+  const drafted=!!S.picks[p.id], pk=S.picks[p.id];
+  const exp=EXP[p.id], mb=maxBid(p.id);
+  const cls=drafted?("drafted"+(pk.mine?" mine":"")):"";
+  const act=drafted
+    ? `<span class="by ${pk.mine?"me":"opp"}">${pk.mine?"MINE":"OPP"} · $${pk.price}</span>`
+    : `<span class="act"><input class="mono" data-price="${p.id}" type="number" min="1" value="${Math.max(1,exp)}" aria-label="price">`+
+      `<button class="me" data-me="${p.id}" ${mb<1?"disabled":""}>Me</button>`+
+      `<button class="opp" data-opp="${p.id}">Opp</button></span>`;
+  return `<tr class="${cls}" data-row="${esc(p.id)}">
+    <td class="l rk">${p.rank}</td>
+    <td class="l"><div class="pname">${esc(p.player)}</div><div class="pmeta">${esc(p.team||"FA")}</div></td>
+    <td><span class="pill ${p.pos}">${p.pos}</span></td>
+    <td class="hide-sm mono" style="color:var(--muted)">${p.ecr!=null?p.ecr.toFixed(1):"—"}</td>
+    <td class="hide-sm"><span class="tier"><i style="background:${tierColor(p.tier)}"></i>${p.tier}</span></td>
+    <td class="hide-sm mono" style="color:var(--muted)">${p.__pts.toFixed(1)}</td>
+    <td><span class="dol opt">$${p.optimal}</span></td>
+    <td><span class="exp">$${exp}</span>${drafted?"":deltaChip(p.optimal,exp)}</td>
+    <td><span class="max">$${mb}</span></td>
+    <td>${act}</td></tr>`;
+}
+function tierColor(t){const c=["#1f9d57","#2f8f5b","#5c9c7a","#7a9c6f","#9c9560","#b2895a","#b0745a"];return c[Math.min(t-1,c.length-1)]||"var(--muted)";}
+
+function renderBoard(){
+  const q=S.search.toLowerCase(), need=new Set(openStarterPos());
+  let rows=VALUED.filter(p=>{
+    if(!S.pos.has(p.pos))return false;
+    if(S.hideDrafted&&S.picks[p.id])return false;
+    if(q&&!p.player.toLowerCase().includes(q))return false;
+    if(S.onlyNeed&&!need.has(p.pos))return false;
+    return true;
+  });
+  $("#boardBody").innerHTML=rows.length?rows.map(rowHTML).join(""):`<tr><td colspan="10" class="empty">No players match.</td></tr>`;
+}
+function renderTargets(){
+  const recs=recommendations(VALUED,EXP);
+  const open=myOpen(),need=openStarterPos();
+  $("#guide").innerHTML= open<=0
+    ? "Your roster is full. 🎉"
+    : `<b>$${myRemaining()}</b> left for <b>${open}</b> open spots (~$${Math.round(myRemaining()/Math.max(1,open))}/slot). `+
+      (need.length?`Still need to start: <b>${need.join(", ")}</b>.`:"All starters filled — building depth &amp; upside.");
+  $("#targetsBody").innerHTML=recs.length?recs.map(r=>{const p=r.p,exp=EXP[p.id];
+    return `<tr data-row="${esc(p.id)}">
+      <td class="l"><div class="pname">${esc(p.player)}</div><div class="pmeta">${esc(p.team||"FA")}</div></td>
+      <td><span class="pill ${p.pos}">${p.pos}</span></td>
+      <td class="hide-sm mono" style="color:var(--muted)">${p.ecr!=null?p.ecr.toFixed(1):"—"}</td>
+      <td class="hide-sm"><span class="tier"><i style="background:${tierColor(p.tier)}"></i>${p.tier}</span></td>
+      <td><span class="dol opt">$${p.optimal}</span></td>
+      <td><span class="exp">$${exp}</span>${deltaChip(p.optimal,exp)}</td>
+      <td><span class="max">$${r.bid}</span></td>
+      <td class="hide-sm"><span class="scorebar"><span class="track"><i style="width:${r.score}%"></i></span></span></td>
+      <td class="l why">${esc(r.why)}</td>
+      <td><span class="act"><input class="mono" data-price="${p.id}" type="number" min="1" value="${r.bid}" aria-label="price">
+        <button class="me" data-me="${p.id}">Me</button><button class="opp" data-opp="${p.id}">Opp</button></span></td>
+    </tr>`;}).join(""):`<tr><td colspan="10" class="empty">No affordable targets — out of budget or roster space.</td></tr>`;
+}
+function renderLog(){
+  const picks=Object.keys(S.picks).map(id=>({p:byId[id],...S.picks[id]})).filter(x=>x.p)
+    .sort((a,b)=>b.price-a.price);
+  $("#logCount").textContent=picks.length+" picks";
+  $("#logBody").innerHTML=picks.length?picks.map(x=>`<tr>
+      <td class="l"><span class="pname" style="font-size:13px">${esc(x.p.player)}</span> <span class="pmeta">${esc(x.p.team||"")}</span></td>
+      <td><span class="pill ${x.p.pos}">${x.p.pos}</span></td>
+      <td class="mono" style="font-weight:600">$${x.price}</td>
+      <td><span class="by ${x.mine?"me":"opp"}">${x.mine?"MINE":"OPP"}</span></td>
+      <td class="hide-sm mono" style="color:var(--muted)">$${x.p.optimal}</td>
+      <td><button class="undo" data-undo="${esc(x.p.id)}">Undo</button></td></tr>`).join("")
+    :`<tr><td colspan="6" class="empty">No picks yet. Log them on the Board.</td></tr>`;
+  const avail=VALUED.filter(p=>!S.picks[p.id]);
+  $("#scarBody").innerHTML=POSITIONS.map(pos=>{
+    const start=avail.filter(p=>p.pos===pos&&p.vorp>0).length, tot=avail.filter(p=>p.pos===pos).length;
+    return `<tr><td class="l"><span class="pill ${pos}">${pos}</span></td><td class="mono ${start<=3?"":""}" style="font-weight:600;color:${start<=3?"var(--reach)":"var(--text)"}">${start}</td><td class="mono" style="color:var(--muted)">${tot}</td></tr>`;
+  }).join("");
+}
+function renderRail(){
+  const L=league(),open=myOpen();
+  $("#maxbid").textContent="$"+maxBidAny();
+  $("#budgetLeft").textContent="$"+myRemaining();
+  $("#budgetBar").style.width=(100*myRemaining()/S.budget)+"%";
+  $("#rosterN").textContent=myIds().length+" / "+ROSTER;
+  $("#perSlot").textContent="$"+(open?Math.round(myRemaining()/open):0);
+  const o=openSlots(); const chips=[];
+  for(const p of POSITIONS) if(o[p]>0) chips.push(`<span class="chip need">${p}${o[p]>1?"×"+o[p]:""}</span>`);
+  if(o.FLEX>0)chips.push(`<span class="chip need">FLEX</span>`);
+  if(o.BENCH>0)chips.push(`<span class="chip ghost">+${o.BENCH} bench</span>`);
+  $("#needs").innerHTML=chips.join("")||`<span class="chip ghost">starters set</span>`;
+  $("#brandSub").textContent=`${FMT_LABEL[S.format]} · ${S.teams} teams · $${S.budget}`;
+  $("#tabTargets").textContent=open>0?"":"✓";
+  $("#tabLog").textContent=Object.keys(S.picks).length||"";
+}
+function render(){
+  recompute(); renderRail();
+  if(S.tab==="board")renderBoard(); else if(S.tab==="targets")renderTargets(); else renderLog();
+  save();
+}
+
+/* ======================= interactions ======================= */
+function draft(id,mine){const inp=document.querySelector(`input[data-price="${cssEsc(id)}"]`);
+  let price=inp?parseInt(inp.value,10):EXP[id]; if(!price||price<1)price=1;
+  S.picks[id]={price,mine}; render();}
+function undo(id){delete S.picks[id];render();}
+function cssEsc(s){return (window.CSS&&CSS.escape)?CSS.escape(s):s.replace(/["\\]/g,"\\$&");}
+
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button");if(!t)return;
+  if(t.dataset.me!=null)return draft(t.dataset.me,true);
+  if(t.dataset.opp!=null)return draft(t.dataset.opp,false);
+  if(t.dataset.undo!=null)return undo(t.dataset.undo);
+  if(t.dataset.tab){S.tab=t.dataset.tab;
+    document.querySelectorAll('[role=tab]').forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===S.tab));
+    ["board","targets","log"].forEach(x=>$("#panel-"+x).style.display=x===S.tab?(x==="log"?"block":"flex"):"none");
+    render();return;}
+  if(t.dataset.fmt){S.format=t.dataset.fmt;
+    document.querySelectorAll('#fmtSeg button').forEach(b=>b.setAttribute("aria-pressed",b.dataset.fmt===S.format));render();return;}
+  if(t.dataset.pos!=null){const p=t.dataset.pos;
+    if(S.pos.has(p)&&S.pos.size===1){S.pos=new Set(POSITIONS);}      // click the lone-active to reset
+    else if(S.pos.size===POSITIONS.length){S.pos=new Set([p]);}       // from all -> solo
+    else if(S.pos.has(p)){S.pos.delete(p);} else {S.pos.add(p);}
+    if(!S.pos.size)S.pos=new Set(POSITIONS);
+    syncPosUI();renderBoard();return;}
+});
+$("#search").addEventListener("input",e=>{S.search=e.target.value;renderBoard();});
+$("#hideDrafted").addEventListener("change",e=>{S.hideDrafted=e.target.checked;renderBoard();});
+$("#onlyNeed").addEventListener("change",e=>{S.onlyNeed=e.target.checked;renderBoard();});
+$("#teams").addEventListener("change",e=>{S.teams=Math.max(4,Math.min(16,+e.target.value||10));e.target.value=S.teams;render();});
+$("#budget").addEventListener("change",e=>{S.budget=Math.max(50,Math.min(1000,+e.target.value||200));e.target.value=S.budget;render();});
+$("#btnReset").addEventListener("click",()=>{if(confirm("Clear all drafted players?")){S.picks={};render();}});
+
+/* back up / restore via a copy-paste panel (the artifact viewer blocks file
+   downloads, and the draft already auto-saves to this browser) */
+const modal=$("#modal"),modalText=$("#modalText");
+function draftJSON(){return JSON.stringify({format:S.format,teams:S.teams,budget:S.budget,picks:S.picks},null,2);}
+function openModal(mode){
+  modalText.value=mode==="export"?draftJSON():"";
+  $("#modalTitle").textContent=mode==="export"?"Back up draft":"Restore draft";
+  $("#modalHint").textContent=mode==="export"
+    ? "Copy this text somewhere safe to move or restore your draft later."
+    : "Paste a backed-up draft below, then press Load.";
+  modal.classList.add("open");modalText.focus();if(mode==="export")modalText.select();
+}
+$("#btnExport").addEventListener("click",()=>openModal("export"));
+$("#btnImport").addEventListener("click",()=>openModal("import"));
+$("#modalClose").addEventListener("click",()=>modal.classList.remove("open"));
+modal.addEventListener("click",e=>{if(e.target===modal)modal.classList.remove("open");});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")modal.classList.remove("open");});
+$("#modalCopy").addEventListener("click",()=>{modalText.select();
+  try{navigator.clipboard.writeText(modalText.value);}catch(e){try{document.execCommand("copy");}catch(_){}}
+  const b=$("#modalCopy");b.textContent="Copied ✓";setTimeout(()=>b.textContent="Copy",1200);});
+$("#modalLoad").addEventListener("click",()=>{try{const j=JSON.parse(modalText.value);
+  if(j.format)S.format=j.format;if(j.teams)S.teams=j.teams;if(j.budget)S.budget=j.budget;S.picks=j.picks||{};
+  syncControls();modal.classList.remove("open");render();}catch(err){alert("That doesn't look like valid draft data.");}});
+
+function syncPosUI(){document.querySelectorAll('#posfilter button').forEach(b=>{
+  const on=S.pos.size!==POSITIONS.length&&S.pos.has(b.dataset.pos);b.setAttribute("aria-pressed",on);});}
+function syncControls(){
+  $("#teams").value=S.teams;$("#budget").value=S.budget;
+  document.querySelectorAll('#fmtSeg button').forEach(b=>b.setAttribute("aria-pressed",b.dataset.fmt===S.format));}
+
+/* ======================= init ======================= */
+$("#posfilter").innerHTML=POSITIONS.map(p=>`<button data-pos="${p}" aria-pressed="false">${p}</button>`).join("");
+$("#srcline").innerHTML= DB.meta.ranking_source==="fantasypros_ecr"
+  ? `Rankings <b>FantasyPros consensus</b> · scraped ${esc(DB.meta.fp_scrape_date)} · magnitudes nflverse`
+  : `Projections nflverse model · through ${esc(DB.meta.data_through_season)}`;
+$("#foot").innerHTML=`<b>${DB.meta.n_players}</b> players · ESPN roster: 1QB 2RB 2WR 1TE FLEX DST K + 4 bench.<br>`+
+  `Rankings from FantasyPros consensus (${esc(DB.meta.fp_scrape_date||"")}). Your draft is saved in <b>this browser</b> only.`;
+syncControls();
+render();
+</script>
